@@ -13,12 +13,19 @@ import {
 import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 
-const TABS = [
+type TabDef = {
+  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/profile";
+  label: string;
+  icon: typeof Trophy;
+  exact?: boolean;
+};
+
+const TABS: TabDef[] = [
   { to: "/app", label: "Leaderboard", icon: Trophy, exact: true },
   { to: "/app/log", label: "Log", icon: Plus },
   { to: "/app/hall-of-fame", label: "Legends", icon: Award },
   { to: "/app/profile", label: "Me", icon: UserIcon },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { activeTeam, teams, setActiveTeamId } = useTeams();
