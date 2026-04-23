@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Trophy, Plus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Trophy, CirclePlus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings } from "lucide-react";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
 import {
@@ -11,17 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 type TabDef = {
-  to: "/app" | "/app/hall-of-fame" | "/app/profile";
+  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/profile";
   label: string;
   icon: typeof Trophy;
   exact?: boolean;
+  highlight?: boolean;
 };
 
 const TABS: TabDef[] = [
   { to: "/app", label: "Leaderboard", icon: Trophy, exact: true },
+  { to: "/app/log", label: "Log round", icon: CirclePlus, highlight: true },
   { to: "/app/hall-of-fame", label: "Legends", icon: Award },
   { to: "/app/profile", label: "Me", icon: UserIcon },
 ];
