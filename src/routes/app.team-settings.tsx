@@ -262,6 +262,61 @@ function TeamSettings() {
           {archiving ? "Kruunataan..." : "Kruunaa mestari 🏆"}
         </Button>
       </div>
+
+      {/* Team courses management */}
+      <div className="bg-card rounded-3xl p-5 shadow-card">
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="w-5 h-5 text-flag fill-flag" />
+          <h2 className="font-display text-lg">Tiimin kentät</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          Viralliset kentät näkyvät ensimmäisinä, kun tiimiläinen kirjaa kierroksen. Jäsenet voivat lisätä omia, sinä voit nostaa ne virallisiksi.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <Input
+            value={newCourse}
+            onChange={(e) => setNewCourse(e.target.value)}
+            placeholder="esim. Pickala Forest"
+            className="h-11"
+          />
+          <Button
+            type="button"
+            onClick={() => addCourse(true)}
+            disabled={coursesLoading || !newCourse.trim()}
+            className="rounded-xl h-11 shrink-0"
+          >
+            <Plus className="w-4 h-4 mr-1" /> Lisää
+          </Button>
+        </div>
+        {courses.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Ei vielä kenttiä.</p>
+        ) : (
+          <ul className="divide-y">
+            {courses.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => toggleOfficial(c)}
+                  title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
+                  className="shrink-0"
+                >
+                  <Star
+                    className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
+                  />
+                </button>
+                <span className="flex-1 text-sm truncate">{c.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeCourse(c.id)}
+                  className="text-muted-foreground hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
