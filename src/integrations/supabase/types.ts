@@ -14,16 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      champions: {
+        Row: {
+          birdie_count: number
+          created_at: string
+          id: string
+          season_end: string
+          season_label: string | null
+          season_start: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          birdie_count?: number
+          created_at?: string
+          id?: string
+          season_end: string
+          season_label?: string | null
+          season_start: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          birdie_count?: number
+          created_at?: string
+          id?: string
+          season_end?: string
+          season_label?: string | null
+          season_start?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "champions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notable_shots: {
+        Row: {
+          course_name: string
+          created_at: string
+          event_name: string | null
+          hole_number: number | null
+          id: string
+          played_on: string
+          round_id: string
+          shot_type: Database["public"]["Enums"]["shot_type"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          course_name: string
+          created_at?: string
+          event_name?: string | null
+          hole_number?: number | null
+          id?: string
+          played_on: string
+          round_id: string
+          shot_type: Database["public"]["Enums"]["shot_type"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          course_name?: string
+          created_at?: string
+          event_name?: string | null
+          hole_number?: number | null
+          id?: string
+          played_on?: string
+          round_id?: string
+          shot_type?: Database["public"]["Enums"]["shot_type"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notable_shots_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notable_shots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nickname: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          nickname?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nickname?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rounds: {
+        Row: {
+          albatrosses: number
+          birdies: number
+          course_name: string
+          created_at: string
+          eagles: number
+          hole_in_ones: number
+          holes_played: number
+          id: string
+          played_on: string
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          albatrosses?: number
+          birdies?: number
+          course_name: string
+          created_at?: string
+          eagles?: number
+          hole_in_ones?: number
+          holes_played: number
+          id?: string
+          played_on: string
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          albatrosses?: number
+          birdies?: number
+          course_name?: string
+          created_at?: string
+          eagles?: number
+          hole_in_ones?: number
+          holes_played?: number
+          id?: string
+          played_on?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rounds_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          join_code: string
+          logo_url: string | null
+          name: string
+          season_end: string | null
+          season_start: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          join_code?: string
+          logo_url?: string | null
+          name: string
+          season_end?: string | null
+          season_start?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          join_code?: string
+          logo_url?: string | null
+          name?: string
+          season_end?: string | null
+          season_start?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_team_by_join_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          logo_url: string
+          name: string
+        }[]
+      }
+      is_team_admin: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      join_team_by_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      shot_type: "eagle" | "albatross" | "hole_in_one"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +405,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      shot_type: ["eagle", "albatross", "hole_in_one"],
+    },
   },
 } as const
