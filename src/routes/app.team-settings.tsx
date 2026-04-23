@@ -144,6 +144,49 @@ function TeamSettings() {
     }
   };
 
+  const addCourse = async (asOfficial: boolean) => {
+    if (!newCourse.trim() || !user) return;
+    setCoursesLoading(true);
+    const { data, error } = await supabase
+      .from("team_courses")
+      .insert({ team_id: activeTeam.id, name: newCourse.trim(), added_by: user.id, is_official: asOfficial })
+      .select("id, name, is_official")
+      .single();
+    setCoursesLoading(false);
+    if (error) {
+      toast.error("Lisäys epäonnistui (kenttä ehkä jo olemassa)");
+      return;
+    }
+    setCourses((prev) => [...prev, data].sort((a, b) =>
+      Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name),
+    ));
+    setNewCourse("");
+  };
+
+  const toggleOfficial = async (c: { id: string; is_official: boolean }) => {
+    const next = !c.is_official;
+    const { error } = await supabase.from("team_courses").update({ is_official: next }).eq("id", c.id);
+    if (error) {
+      toast.error("Päivitys epäonnistui");
+      return;
+    }
+    setCourses((prev) =>
+      prev
+        .map((x) => (x.id === c.id ? { ...x, is_official: next } : x))
+        .sort((a, b) => Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name)),
+    );
+  };
+
+  const removeCourse = async (id: string) => {
+    if (!confirm("Poistetaanko kenttä?")) return;
+    const { error } = await supabase.from("team_courses").delete().eq("id", id);
+    if (error) {
+      toast.error("Poisto epäonnistui");
+      return;
+    }
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
