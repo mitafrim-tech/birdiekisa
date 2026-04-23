@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
-import { Trophy, Flag, Crown, Plus } from "lucide-react";
+import { Trophy, Flag, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { format } from "date-fns";
@@ -34,8 +34,17 @@ function Leaderboard() {
       // Fetch members
       const { data: members } = await supabase
         .from("team_members")
-        .select("user_id, profiles:profiles!team_members_user_id_fkey(nickname, avatar_url)")
+        .select("user_id")
         .eq("team_id", activeTeam.id);
+
+      const memberIds = (members ?? []).map((m) => m.user_id);
+      const { data: profiles } = memberIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, nickname, avatar_url")
+            .in("id", memberIds)
+        : { data: [] as { id: string; nickname: string | null; avatar_url: string | null }[] };
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
       // Fetch rounds within season window
       let q = supabase
@@ -56,12 +65,13 @@ function Leaderboard() {
         totals.set(r.user_id, cur);
       });
 
-      const built: LeaderRow[] = (members ?? []).map((m: any) => {
+      const built: LeaderRow[] = (members ?? []).map((m) => {
         const t = totals.get(m.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
+        const p = profileMap.get(m.user_id);
         return {
           user_id: m.user_id,
-          nickname: m.profiles?.nickname ?? "Player",
-          avatar_url: m.profiles?.avatar_url ?? null,
+          nickname: p?.nickname ?? "Player",
+          avatar_url: p?.avatar_url ?? null,
           ...t,
         };
       });
@@ -125,16 +135,6 @@ function Leaderboard() {
         </div>
       )}
 
-      {rows.length > 0 && (
-        <Link
-          to="/app/log"
-          className="fixed bottom-24 right-1/2 translate-x-[12rem] sm:right-[calc(50%-12rem)] z-30"
-        >
-          <button className="bg-flag text-primary-foreground rounded-full w-14 h-14 shadow-bold flex items-center justify-center hover:scale-105 transition-transform">
-            <Plus className="w-7 h-7" strokeWidth={3} />
-          </button>
-        </Link>
-      )}
     </div>
   );
 }

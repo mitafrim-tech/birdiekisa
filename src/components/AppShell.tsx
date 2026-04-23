@@ -11,10 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 type TabDef = {
-  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/profile";
+  to: "/app" | "/app/hall-of-fame" | "/app/profile";
   label: string;
   icon: typeof Trophy;
   exact?: boolean;
@@ -22,7 +22,6 @@ type TabDef = {
 
 const TABS: TabDef[] = [
   { to: "/app", label: "Leaderboard", icon: Trophy, exact: true },
-  { to: "/app/log", label: "Log", icon: Plus },
   { to: "/app/hall-of-fame", label: "Legends", icon: Award },
   { to: "/app/profile", label: "Me", icon: UserIcon },
 ];
@@ -109,12 +108,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="max-w-md mx-auto grid grid-cols-4">
-          {TABS.map(({ to, label, icon: Icon, exact }) => {
+        <div className="max-w-md mx-auto grid grid-cols-[1fr_auto_1fr_1fr] relative items-end">
+          {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
             const active = exact
               ? location.pathname === to
               : location.pathname === to || location.pathname.startsWith(to + "/");
-            return (
+            const tabEl = (
               <Link
                 key={to}
                 to={to}
@@ -134,6 +133,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="text-[10px] font-semibold uppercase tracking-wider">{label}</span>
               </Link>
             );
+            if (idx === 1) {
+              return (
+                <Fragment key={to}>
+                  <Link
+                    to="/app/log"
+                    className="flex flex-col items-center justify-end gap-1 pb-3"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-flag text-primary-foreground shadow-bold flex items-center justify-center -mt-6 border-4 border-background hover:scale-105 transition-transform">
+                      <Plus className="w-7 h-7" strokeWidth={3} />
+                    </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-flag">Log</span>
+                  </Link>
+                  {tabEl}
+                </Fragment>
+              );
+            }
+            return tabEl;
           })}
         </div>
       </nav>
