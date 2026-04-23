@@ -34,8 +34,17 @@ function Leaderboard() {
       // Fetch members
       const { data: members } = await supabase
         .from("team_members")
-        .select("user_id, profiles:profiles!team_members_user_id_fkey(nickname, avatar_url)")
+        .select("user_id")
         .eq("team_id", activeTeam.id);
+
+      const memberIds = (members ?? []).map((m) => m.user_id);
+      const { data: profiles } = memberIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, nickname, avatar_url")
+            .in("id", memberIds)
+        : { data: [] as { id: string; nickname: string | null; avatar_url: string | null }[] };
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
       // Fetch rounds within season window
       let q = supabase
@@ -56,12 +65,13 @@ function Leaderboard() {
         totals.set(r.user_id, cur);
       });
 
-      const built: LeaderRow[] = (members ?? []).map((m: any) => {
+      const built: LeaderRow[] = (members ?? []).map((m) => {
         const t = totals.get(m.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
+        const p = profileMap.get(m.user_id);
         return {
           user_id: m.user_id,
-          nickname: m.profiles?.nickname ?? "Player",
-          avatar_url: m.profiles?.avatar_url ?? null,
+          nickname: p?.nickname ?? "Player",
+          avatar_url: p?.avatar_url ?? null,
           ...t,
         };
       });
