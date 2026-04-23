@@ -9,12 +9,42 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AppTeamsRouteImport } from './routes/app.teams'
+import { Route as AppTeamSettingsRouteImport } from './routes/app.team-settings'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppLogRouteImport } from './routes/app.log'
+import { Route as AppHallOfFameRouteImport } from './routes/app.hall-of-fame'
+import { Route as AppPlayerIdRouteImport } from './routes/app.player.$id'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const JoinCodeRoute = JoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -22,40 +52,166 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTeamsRoute = AppTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamSettingsRoute = AppTeamSettingsRouteImport.update({
+  id: '/team-settings',
+  path: '/team-settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLogRoute = AppLogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
+  id: '/hall-of-fame',
+  path: '/hall-of-fame',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlayerIdRoute = AppPlayerIdRouteImport.update({
+  id: '/player/$id',
+  path: '/player/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
+  '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/log': typeof AppLogRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/team-settings': typeof AppTeamSettingsRoute
+  '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$code': typeof JoinCodeRoute
+  '/app/': typeof AppIndexRoute
+  '/app/player/$id': typeof AppPlayerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
+  '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/log': typeof AppLogRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/team-settings': typeof AppTeamSettingsRoute
+  '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$code': typeof JoinCodeRoute
+  '/app': typeof AppIndexRoute
+  '/app/player/$id': typeof AppPlayerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
+  '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/log': typeof AppLogRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/team-settings': typeof AppTeamSettingsRoute
+  '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$code': typeof JoinCodeRoute
+  '/app/': typeof AppIndexRoute
+  '/app/player/$id': typeof AppPlayerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/callback'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/onboarding'
+    | '/app/hall-of-fame'
+    | '/app/log'
+    | '/app/profile'
+    | '/app/team-settings'
+    | '/app/teams'
+    | '/auth/callback'
+    | '/join/$code'
+    | '/app/'
+    | '/app/player/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/callback'
-  id: '__root__' | '/' | '/auth/callback'
+  to:
+    | '/'
+    | '/onboarding'
+    | '/app/hall-of-fame'
+    | '/app/log'
+    | '/app/profile'
+    | '/app/team-settings'
+    | '/app/teams'
+    | '/auth/callback'
+    | '/join/$code'
+    | '/app'
+    | '/app/player/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/onboarding'
+    | '/app/hall-of-fame'
+    | '/app/log'
+    | '/app/profile'
+    | '/app/team-settings'
+    | '/app/teams'
+    | '/auth/callback'
+    | '/join/$code'
+    | '/app/'
+    | '/app/player/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  JoinCodeRoute: typeof JoinCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/join/$code': {
+      id: '/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -65,12 +221,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/teams': {
+      id: '/app/teams'
+      path: '/teams'
+      fullPath: '/app/teams'
+      preLoaderRoute: typeof AppTeamsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/team-settings': {
+      id: '/app/team-settings'
+      path: '/team-settings'
+      fullPath: '/app/team-settings'
+      preLoaderRoute: typeof AppTeamSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/log': {
+      id: '/app/log'
+      path: '/log'
+      fullPath: '/app/log'
+      preLoaderRoute: typeof AppLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/hall-of-fame': {
+      id: '/app/hall-of-fame'
+      path: '/hall-of-fame'
+      fullPath: '/app/hall-of-fame'
+      preLoaderRoute: typeof AppHallOfFameRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/player/$id': {
+      id: '/app/player/$id'
+      path: '/player/$id'
+      fullPath: '/app/player/$id'
+      preLoaderRoute: typeof AppPlayerIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppHallOfFameRoute: typeof AppHallOfFameRoute
+  AppLogRoute: typeof AppLogRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppTeamSettingsRoute: typeof AppTeamSettingsRoute
+  AppTeamsRoute: typeof AppTeamsRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppPlayerIdRoute: typeof AppPlayerIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppHallOfFameRoute: AppHallOfFameRoute,
+  AppLogRoute: AppLogRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppTeamSettingsRoute: AppTeamSettingsRoute,
+  AppTeamsRoute: AppTeamsRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppPlayerIdRoute: AppPlayerIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  JoinCodeRoute: JoinCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
