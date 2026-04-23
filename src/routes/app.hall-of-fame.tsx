@@ -80,9 +80,19 @@ function HallOfFame() {
     <div className="space-y-6 pb-8">
       <div className="rounded-3xl bg-gradient-sunset p-6 text-night shadow-card relative overflow-hidden">
         <Award className="absolute -right-4 -top-4 w-32 h-32 text-night/10" />
-        <div className="relative">
+        <div className="relative flex items-end justify-between gap-4">
+          <div>
           <div className="text-xs uppercase tracking-widest font-semibold opacity-80">Kunnian galleria</div>
           <h1 className="font-display text-3xl mt-1">Legendat</h1>
+          </div>
+          {isAdmin && (
+            <Link
+              to="/app/legends-admin"
+              className="shrink-0 inline-flex items-center gap-1 bg-night text-primary-foreground rounded-xl px-3 py-2 text-xs font-display shadow-bold"
+            >
+              <Plus className="w-3.5 h-3.5" /> Lisää
+            </Link>
+          )}
         </div>
       </div>
 
