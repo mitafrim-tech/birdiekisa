@@ -16,7 +16,7 @@ interface TeamContextValue {
   teams: TeamSummary[];
   activeTeam: TeamSummary | null;
   setActiveTeamId: (id: string) => void;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<TeamSummary[]>;
   loading: boolean;
 }
 
@@ -30,12 +30,12 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<TeamSummary[]> => {
     if (!user) {
       setTeams([]);
       setActiveId(null);
       setLoading(false);
-      return;
+      return [];
     }
     setLoading(true);
     const { data, error } = await supabase
@@ -44,12 +44,16 @@ export function TeamProvider({ children }: { children: ReactNode }) {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      setTeams(data as TeamSummary[]);
+      const nextTeams = data as TeamSummary[];
+      setTeams(nextTeams);
       const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-      const exists = data.find((t) => t.id === stored);
-      setActiveId(exists ? stored : data[0]?.id ?? null);
+      const exists = nextTeams.find((t) => t.id === stored);
+      setActiveId(exists ? stored : nextTeams[0]?.id ?? null);
+      setLoading(false);
+      return nextTeams;
     }
     setLoading(false);
+    return [];
   }, [user]);
 
   useEffect(() => {

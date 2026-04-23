@@ -35,7 +35,7 @@ function TeamsPage() {
     try {
       let logo_url: string | null = null;
       if (logoFile) logo_url = await uploadUserFile("team-logos", user.id, logoFile);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("teams")
         .insert({
           name: name.trim(),
@@ -43,12 +43,15 @@ function TeamsPage() {
           logo_url,
           season_start: seasonStart || null,
           season_end: seasonEnd || null,
-        })
-        .select("id")
-        .single();
-      if (error || !data) throw error ?? new Error("Could not create team");
-      await refresh();
-      setActiveTeamId(data.id);
+        });
+      if (error) throw error;
+
+      const nextTeams = await refresh();
+      const createdTeam = [...nextTeams].reverse().find((team) => team.admin_id === user.id && team.name === name.trim());
+      if (createdTeam) {
+        setActiveTeamId(createdTeam.id);
+      }
+
       toast.success(`${name} created`);
       navigate({ to: "/app" });
     } catch (err) {
