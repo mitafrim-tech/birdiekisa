@@ -27,11 +27,28 @@ function TeamSettings() {
   const [seasonEnd, setSeasonEnd] = useState(activeTeam?.season_end ?? "");
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [courses, setCourses] = useState<{ id: string; name: string; is_official: boolean }[]>([]);
+  const [newCourse, setNewCourse] = useState("");
+  const [coursesLoading, setCoursesLoading] = useState(false);
 
   const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
   useEffect(() => {
     if (notAllowed) navigate({ to: "/app" });
   }, [notAllowed, navigate]);
+
+  useEffect(() => {
+    if (!activeTeam) return;
+    (async () => {
+      const { data } = await supabase
+        .from("team_courses")
+        .select("id, name, is_official")
+        .eq("team_id", activeTeam.id)
+        .order("is_official", { ascending: false })
+        .order("name");
+      setCourses(data ?? []);
+    })();
+  }, [activeTeam]);
+
   if (!activeTeam) return null;
   if (user && user.id !== activeTeam.admin_id) return null;
 
