@@ -110,48 +110,46 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="max-w-md mx-auto grid grid-cols-[1fr_auto_1fr_1fr] relative items-end">
-          {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
+        <div className="max-w-md mx-auto grid grid-cols-4 items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
+          {TABS.map(({ to, label, icon: Icon, exact, highlight }) => {
             const active = exact
               ? location.pathname === to
               : location.pathname === to || location.pathname.startsWith(to + "/");
-            const tabEl = (
+            return (
               <Link
                 key={to}
                 to={to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-3 transition-all",
-                  active ? "text-primary" : "text-muted-foreground",
+                  "relative flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
+                {highlight && !active && (
+                  <span className="absolute top-1.5 right-[28%] w-1.5 h-1.5 rounded-full bg-flag animate-pulse" />
+                )}
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-2xl flex items-center justify-center transition-all",
-                    active && "bg-primary text-primary-foreground shadow-glow scale-110",
+                    "flex items-center justify-center transition-all",
+                    "w-11 h-11 rounded-2xl",
+                    active && "bg-primary text-primary-foreground shadow-glow",
+                    !active && highlight && "text-flag",
                   )}
                 >
-                  <Icon className="w-5 h-5" strokeWidth={2.5} />
+                  <Icon
+                    className={cn(highlight ? "w-7 h-7" : "w-5 h-5")}
+                    strokeWidth={highlight ? 2.25 : 2.5}
+                  />
                 </div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider">{label}</span>
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold uppercase tracking-wider",
+                    !active && highlight && "text-flag",
+                  )}
+                >
+                  {label}
+                </span>
               </Link>
             );
-            if (idx === 1) {
-              return (
-                <Fragment key={to}>
-                  <Link
-                    to="/app/log"
-                    className="flex flex-col items-center justify-end gap-1 pb-3"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-flag text-primary-foreground shadow-bold flex items-center justify-center -mt-6 border-4 border-background hover:scale-105 transition-transform">
-                      <Plus className="w-7 h-7" strokeWidth={3} />
-                    </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-flag">Log</span>
-                  </Link>
-                  {tabEl}
-                </Fragment>
-              );
-            }
-            return tabEl;
           })}
         </div>
       </nav>
