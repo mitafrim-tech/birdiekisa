@@ -135,16 +135,6 @@ function Leaderboard() {
         </div>
       )}
 
-      {rows.length > 0 && (
-        <Link
-          to="/app/log"
-          className="fixed bottom-24 right-1/2 translate-x-[12rem] sm:right-[calc(50%-12rem)] z-30"
-        >
-          <button className="bg-flag text-primary-foreground rounded-full w-14 h-14 shadow-bold flex items-center justify-center hover:scale-105 transition-transform">
-            <Plus className="w-7 h-7" strokeWidth={3} />
-          </button>
-        </Link>
-      )}
     </div>
   );
 }
