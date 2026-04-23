@@ -34,7 +34,7 @@ function AuthCallback() {
         <div className="w-14 h-14 rounded-2xl bg-accent inline-flex items-center justify-center mb-4 shadow-bold animate-pulse">
           <Flag className="w-8 h-8 text-night" strokeWidth={3} />
         </div>
-        <p className="font-display text-2xl">Signing you in...</p>
+        <p className="font-display text-2xl">Kirjataan sisään...</p>
       </div>
     </div>
   );
