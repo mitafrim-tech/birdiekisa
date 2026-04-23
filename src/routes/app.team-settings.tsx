@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
