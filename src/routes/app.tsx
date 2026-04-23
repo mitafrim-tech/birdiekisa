@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/app")({
 function AppLayout() {
   const { user, loading } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
-  const navigate = useNavigate();
+  const location = useLocation();
   const [profileChecked, setProfileChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
@@ -57,7 +57,7 @@ function AppLayout() {
     return <Navigate to="/onboarding" />;
   }
 
-  if (!teamsLoading && teams.length === 0) {
+  if (!teamsLoading && teams.length === 0 && location.pathname !== "/app/teams") {
     return <Navigate to="/app/teams" />;
   }
 
