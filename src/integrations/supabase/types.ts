@@ -17,8 +17,15 @@ export type Database = {
       champions: {
         Row: {
           birdie_count: number
+          category: string
+          competition: string | null
+          course_name: string | null
           created_at: string
+          created_by: string | null
+          event_date: string | null
+          hole_number: number | null
           id: string
+          is_manual: boolean
           season_end: string
           season_label: string | null
           season_start: string
@@ -27,8 +34,15 @@ export type Database = {
         }
         Insert: {
           birdie_count?: number
+          category?: string
+          competition?: string | null
+          course_name?: string | null
           created_at?: string
+          created_by?: string | null
+          event_date?: string | null
+          hole_number?: number | null
           id?: string
+          is_manual?: boolean
           season_end: string
           season_label?: string | null
           season_start: string
@@ -37,8 +51,15 @@ export type Database = {
         }
         Update: {
           birdie_count?: number
+          category?: string
+          competition?: string | null
+          course_name?: string | null
           created_at?: string
+          created_by?: string | null
+          event_date?: string | null
+          hole_number?: number | null
           id?: string
+          is_manual?: boolean
           season_end?: string
           season_label?: string | null
           season_start?: string
@@ -189,6 +210,41 @@ export type Database = {
           },
         ]
       }
+      team_courses: {
+        Row: {
+          added_by: string
+          created_at: string
+          id: string
+          is_official: boolean
+          name: string
+          team_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          id?: string
+          is_official?: boolean
+          name: string
+          team_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          id?: string
+          is_official?: boolean
+          name?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_courses_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -213,6 +269,35 @@ export type Database = {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_rules: {
+        Row: {
+          content: string
+          team_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string
+          team_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          team_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_rules_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },

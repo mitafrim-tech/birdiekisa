@@ -37,7 +37,10 @@ function LandingPage() {
     const redirectTo = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
+      options: {
+        emailRedirectTo: redirectTo,
+        data: { locale: "fi", language: "fi" },
+      },
     });
     setSending(false);
     if (error) {
@@ -84,7 +87,7 @@ function LandingPage() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="text-lg text-primary-foreground/85 mb-10 text-balance"
         >
-          Kirjaa jokainen birdie. Kiipeä tulostaulun kärkeen. Nouse kauden legendaksi golfkavereidesi kanssa.
+          Merkkaa birdiet. Kilpaile tiimisi kanssa. Kohoa golf-legendaksi.
         </motion.p>
 
         <motion.div

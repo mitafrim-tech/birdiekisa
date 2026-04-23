@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
@@ -27,11 +27,28 @@ function TeamSettings() {
   const [seasonEnd, setSeasonEnd] = useState(activeTeam?.season_end ?? "");
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [courses, setCourses] = useState<{ id: string; name: string; is_official: boolean }[]>([]);
+  const [newCourse, setNewCourse] = useState("");
+  const [coursesLoading, setCoursesLoading] = useState(false);
 
   const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
   useEffect(() => {
     if (notAllowed) navigate({ to: "/app" });
   }, [notAllowed, navigate]);
+
+  useEffect(() => {
+    if (!activeTeam) return;
+    (async () => {
+      const { data } = await supabase
+        .from("team_courses")
+        .select("id, name, is_official")
+        .eq("team_id", activeTeam.id)
+        .order("is_official", { ascending: false })
+        .order("name");
+      setCourses(data ?? []);
+    })();
+  }, [activeTeam]);
+
   if (!activeTeam) return null;
   if (user && user.id !== activeTeam.admin_id) return null;
 
@@ -127,6 +144,49 @@ function TeamSettings() {
     }
   };
 
+  const addCourse = async (asOfficial: boolean) => {
+    if (!newCourse.trim() || !user) return;
+    setCoursesLoading(true);
+    const { data, error } = await supabase
+      .from("team_courses")
+      .insert({ team_id: activeTeam.id, name: newCourse.trim(), added_by: user.id, is_official: asOfficial })
+      .select("id, name, is_official")
+      .single();
+    setCoursesLoading(false);
+    if (error) {
+      toast.error("Lisäys epäonnistui (kenttä ehkä jo olemassa)");
+      return;
+    }
+    setCourses((prev) => [...prev, data].sort((a, b) =>
+      Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name),
+    ));
+    setNewCourse("");
+  };
+
+  const toggleOfficial = async (c: { id: string; is_official: boolean }) => {
+    const next = !c.is_official;
+    const { error } = await supabase.from("team_courses").update({ is_official: next }).eq("id", c.id);
+    if (error) {
+      toast.error("Päivitys epäonnistui");
+      return;
+    }
+    setCourses((prev) =>
+      prev
+        .map((x) => (x.id === c.id ? { ...x, is_official: next } : x))
+        .sort((a, b) => Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name)),
+    );
+  };
+
+  const removeCourse = async (id: string) => {
+    if (!confirm("Poistetaanko kenttä?")) return;
+    const { error } = await supabase.from("team_courses").delete().eq("id", id);
+    if (error) {
+      toast.error("Poisto epäonnistui");
+      return;
+    }
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
@@ -201,6 +261,61 @@ function TeamSettings() {
         <Button onClick={archiveSeason} disabled={archiving} variant="destructive" className="w-full h-12 rounded-xl font-display">
           {archiving ? "Kruunataan..." : "Kruunaa mestari 🏆"}
         </Button>
+      </div>
+
+      {/* Team courses management */}
+      <div className="bg-card rounded-3xl p-5 shadow-card">
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="w-5 h-5 text-flag fill-flag" />
+          <h2 className="font-display text-lg">Tiimin kentät</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          Viralliset kentät näkyvät ensimmäisinä, kun tiimiläinen kirjaa kierroksen. Jäsenet voivat lisätä omia, sinä voit nostaa ne virallisiksi.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <Input
+            value={newCourse}
+            onChange={(e) => setNewCourse(e.target.value)}
+            placeholder="esim. Pickala Forest"
+            className="h-11"
+          />
+          <Button
+            type="button"
+            onClick={() => addCourse(true)}
+            disabled={coursesLoading || !newCourse.trim()}
+            className="rounded-xl h-11 shrink-0"
+          >
+            <Plus className="w-4 h-4 mr-1" /> Lisää
+          </Button>
+        </div>
+        {courses.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Ei vielä kenttiä.</p>
+        ) : (
+          <ul className="divide-y">
+            {courses.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => toggleOfficial(c)}
+                  title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
+                  className="shrink-0"
+                >
+                  <Star
+                    className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
+                  />
+                </button>
+                <span className="flex-1 text-sm truncate">{c.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeCourse(c.id)}
+                  className="text-muted-foreground hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

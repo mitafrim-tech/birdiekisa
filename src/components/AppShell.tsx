@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Trophy, CirclePlus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Trophy, CirclePlus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 
 type TabDef = {
-  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/profile";
+  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
   label: string;
   icon: typeof Trophy;
   exact?: boolean;
@@ -25,6 +25,7 @@ const TABS: TabDef[] = [
   { to: "/app", label: "Tulostaulu", icon: Trophy, exact: true },
   { to: "/app/log", label: "Kirjaa kierros", icon: CirclePlus, highlight: true },
   { to: "/app/hall-of-fame", label: "Legendat", icon: Award },
+  { to: "/app/rules", label: "Säännöt", icon: ScrollText },
   { to: "/app/profile", label: "Minä", icon: UserIcon },
 ];
 
@@ -110,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="max-w-md mx-auto grid grid-cols-4 items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
+        <div className="max-w-md mx-auto grid grid-cols-5 items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
           {TABS.map(({ to, label, icon: Icon, exact, highlight }) => {
             const active = exact
               ? location.pathname === to
