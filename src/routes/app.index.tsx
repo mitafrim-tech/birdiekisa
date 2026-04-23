@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { format } from "date-fns";
 
-export const Route = createFileRoute("/_app/")({
+export const Route = createFileRoute("/app/")({
   component: Leaderboard,
 });
 

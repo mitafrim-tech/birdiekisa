@@ -6,7 +6,7 @@ import { Award, Crown } from "lucide-react";
 import { format } from "date-fns";
 import { EmptyState } from "@/components/EmptyState";
 
-export const Route = createFileRoute("/_app/hall-of-fame")({
+export const Route = createFileRoute("/app/hall-of-fame")({
   component: HallOfFame,
 });
 

@@ -10,7 +10,7 @@ import { uploadUserFile } from "@/lib/upload";
 import { Camera, Copy, Crown, Flag } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/team-settings")({
+export const Route = createFileRoute("/app/team-settings")({
   component: TeamSettings,
 });
 

@@ -9,7 +9,7 @@ import { uploadUserFile } from "@/lib/upload";
 import { Camera, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/profile")({
+export const Route = createFileRoute("/app/profile")({
   component: ProfilePage,
 });
 
