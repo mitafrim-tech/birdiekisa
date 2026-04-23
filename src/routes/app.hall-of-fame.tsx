@@ -103,11 +103,13 @@ function HallOfFame() {
         </h2>
         {loading ? (
           <div className="h-20 bg-muted rounded-2xl animate-pulse" />
-        ) : champs.length === 0 ? (
+        ) : champs.filter(c => (c.category ?? "birdie_winner") === "birdie_winner").length === 0 ? (
           <p className="text-sm text-muted-foreground">Yhtään kautta ei ole vielä arkistoitu. Ylläpitäjä voi kruunata mestarin tiimin asetuksista.</p>
         ) : (
           <div className="space-y-2">
-            {champs.map((c) => (
+            {champs
+              .filter((c) => (c.category ?? "birdie_winner") === "birdie_winner")
+              .map((c) => (
               <div key={c.id} className="bg-card rounded-2xl p-4 shadow-card flex items-center gap-3">
                 {c.profiles?.avatar_url ? (
                   <img src={c.profiles.avatar_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
@@ -135,7 +137,60 @@ function HallOfFame() {
         <h2 className="font-display text-xl mb-3">Mainittavat lyönnit</h2>
         {loading ? (
           <div className="h-20 bg-muted rounded-2xl animate-pulse" />
-        ) : shots.length === 0 ? (
+        ) : (() => {
+          const manualShots = champs
+            .filter((c) => (c.category ?? "birdie_winner") !== "birdie_winner")
+            .map((c) => ({
+              id: `m-${c.id}`,
+              shot_type: c.category as ShotRow["shot_type"],
+              course_name: c.course_name ?? "",
+              hole_number: c.hole_number,
+              event_name: c.competition,
+              played_on: c.event_date ?? c.season_end,
+              user_id: c.user_id,
+              profiles: c.profiles,
+            } as ShotRow & { __manual?: boolean }));
+          const all = [...manualShots, ...shots].sort(
+            (a, b) => (a.played_on < b.played_on ? 1 : -1),
+          );
+          if (all.length === 0) {
+            return (
+              <EmptyState icon={Award} title="Ei vielä legendaarisia lyöntejä" description="Eaglet, albatrossit ja holarit ilmestyvät tänne." />
+            );
+          }
+          return (
+            <div className="space-y-2">
+              {all.map((s) => {
+                const meta = SHOT_LABELS[s.shot_type];
+                return (
+                  <div key={s.id} className="bg-card rounded-2xl p-4 shadow-card">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-bold ${meta.color}`}>
+                        {meta.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display text-base">
+                          {s.profiles?.nickname ?? "Pelaaja"} <span className="text-muted-foreground font-sans font-normal">— {meta.label}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {s.course_name}
+                          {s.hole_number ? ` • Reikä ${s.hole_number}` : ""}
+                          {" • "}
+                          {format(new Date(s.played_on), "d.M.yyyy")}
+                        </div>
+                        {s.event_name && (
+                          <div className="text-xs italic text-muted-foreground mt-0.5">{s.event_name}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+        {/* Old fallback below removed */}
+        {false && shots.length === 0 ? (
           <EmptyState icon={Award} title="Ei vielä legendaarisia lyöntejä" description="Eaglet, albatrossit ja holarit ilmestyvät tänne." />
         ) : (
           <div className="space-y-2">
