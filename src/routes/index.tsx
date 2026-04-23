@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,9 +24,11 @@ function LandingPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  if (!loading && user) {
-    return <Navigate to="/app" />;
-  }
+  useEffect(() => {
+    if (!loading && user && typeof window !== "undefined") {
+      window.location.replace("/app");
+    }
+  }, [loading, user]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
