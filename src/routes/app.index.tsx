@@ -86,7 +86,7 @@ function Leaderboard() {
   const seasonLabel =
     activeTeam.season_start && activeTeam.season_end
       ? `${format(new Date(activeTeam.season_start), "MMM d")} – ${format(new Date(activeTeam.season_end), "MMM d, yyyy")}`
-      : "Season not set";
+      : "Kautta ei ole asetettu";
 
   return (
     <div className="space-y-6 pb-4">

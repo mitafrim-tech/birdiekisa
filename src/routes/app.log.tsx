@@ -44,11 +44,11 @@ function LogRound() {
   const goToDetails = (e: React.FormEvent) => {
     e.preventDefault();
     if (!course.trim()) {
-      toast.error("Add a course name");
+      toast.error("Lisää kentän nimi");
       return;
     }
     if (finalHoles <= 0) {
-      toast.error("Number of holes must be at least 1");
+      toast.error("Reikien määrän täytyy olla vähintään 1");
       return;
     }
     if (eagles + albatrosses + holeInOnes === 0) {
@@ -82,7 +82,7 @@ function LogRound() {
         })
         .select("id")
         .single();
-      if (error || !round) throw error ?? new Error("Could not save round");
+      if (error || !round) throw error ?? new Error("Kierroksen tallennus epäonnistui");
 
       // Insert notable shots
       const shots: Array<{
@@ -125,10 +125,10 @@ function LogRound() {
           colors: ["#fbbf24", "#10b981", "#ec4899", "#3b82f6"],
         });
       }
-      toast.success("Round logged!");
+      toast.success("Kierros kirjattu!");
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save round");
+      toast.error(err instanceof Error ? err.message : "Kierroksen tallennus epäonnistui");
     } finally {
       setSubmitting(false);
     }
@@ -137,32 +137,32 @@ function LogRound() {
   if (step === "details") {
     return (
       <div className="pb-8">
-        <h1 className="font-display text-3xl mb-2">Tell us more</h1>
-        <p className="text-muted-foreground mb-6">For the Hall of Fame.</p>
+        <h1 className="font-display text-3xl mb-2">Kerro lisää</h1>
+        <p className="text-muted-foreground mb-6">Legendoille.</p>
         <ShotDetailsList
-          title="Hole-in-ones"
+          title="Holarit"
           emoji="⛳"
           details={hioDetails}
           onChange={setHioDetails}
         />
         <ShotDetailsList
-          title="Albatrosses"
+          title="Albatrossit"
           emoji="🪶"
           details={albatrossDetails}
           onChange={setAlbatrossDetails}
         />
         <ShotDetailsList
-          title="Eagles"
+          title="Eaglet"
           emoji="🦅"
           details={eagleDetails}
           onChange={setEagleDetails}
         />
         <div className="flex gap-3 mt-6">
           <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setStep("round")}>
-            Back
+            Takaisin
           </Button>
           <Button onClick={submit} disabled={submitting} className="flex-1 h-12 rounded-xl font-display">
-            {submitting ? "Saving..." : "Save round"}
+            {submitting ? "Tallennetaan..." : "Tallenna kierros"}
           </Button>
         </div>
       </div>
@@ -171,13 +171,13 @@ function LogRound() {
 
   return (
     <form onSubmit={goToDetails} className="space-y-5 pb-8">
-      <h1 className="font-display text-3xl mb-2">Log a round</h1>
+      <h1 className="font-display text-3xl mb-2">Kirjaa kierros</h1>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Course</Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kenttä</Label>
         <Input
           required
-          placeholder="Helsinki Golf"
+          placeholder="Esim. Helsingin Golfklubi"
           value={course}
           onChange={(e) => setCourse(e.target.value)}
           className="h-12 text-base mt-1"
@@ -185,7 +185,7 @@ function LogRound() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Date</Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Päivämäärä</Label>
         <Input
           required
           type="date"
@@ -196,7 +196,7 @@ function LogRound() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Holes played</Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Pelatut reiät</Label>
         <div className="flex gap-2 mt-1">
           {HOLE_OPTIONS.map((h) => (
             <button
@@ -217,7 +217,7 @@ function LogRound() {
               holes === -1 ? "bg-primary text-primary-foreground shadow-bold" : "bg-secondary text-secondary-foreground"
             }`}
           >
-            Custom
+            Muu
           </button>
         </div>
         {holes === -1 && (
@@ -225,7 +225,7 @@ function LogRound() {
             type="number"
             min={1}
             max={72}
-            placeholder="Number of holes"
+            placeholder="Reikien määrä"
             value={customHoles}
             onChange={(e) => setCustomHoles(e.target.value)}
             className="mt-2 h-12"
@@ -235,19 +235,19 @@ function LogRound() {
 
       {/* Birdie - the hero */}
       <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-6 shadow-card">
-        <div className="text-xs uppercase tracking-widest opacity-90 font-semibold">Headline stat</div>
-        <div className="font-display text-2xl mt-1 mb-4">Birdies</div>
+        <div className="text-xs uppercase tracking-widest opacity-90 font-semibold">Päätilasto</div>
+        <div className="font-display text-2xl mt-1 mb-4">Birdiet</div>
         <Counter value={birdies} onChange={setBirdies} big />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <SmallCounter label="Eagles" emoji="🦅" value={eagles} onChange={setEagles} />
-        <SmallCounter label="Albatross" emoji="🪶" value={albatrosses} onChange={setAlbatrosses} />
-        <SmallCounter label="Hole-in-1" emoji="⛳" value={holeInOnes} onChange={setHoleInOnes} />
+        <SmallCounter label="Eaglet" emoji="🦅" value={eagles} onChange={setEagles} />
+        <SmallCounter label="Albatrossit" emoji="🪶" value={albatrosses} onChange={setAlbatrosses} />
+        <SmallCounter label="Holarit" emoji="⛳" value={holeInOnes} onChange={setHoleInOnes} />
       </div>
 
       <Button type="submit" className="w-full h-14 rounded-xl font-display text-lg">
-        {eagles + albatrosses + holeInOnes > 0 ? "Continue →" : "Save round"}
+        {eagles + albatrosses + holeInOnes > 0 ? "Jatka →" : "Tallenna kierros"}
       </Button>
     </form>
   );
@@ -335,7 +335,7 @@ function ShotDetailsList({
         {details.map((d, i) => (
           <div key={i} className="bg-card rounded-2xl p-4 shadow-card space-y-2">
             <Input
-              placeholder="Course"
+              placeholder="Kenttä"
               value={d.course_name}
               onChange={(e) => update(i, { course_name: e.target.value })}
               className="h-11"
@@ -345,13 +345,13 @@ function ShotDetailsList({
                 type="number"
                 min={1}
                 max={72}
-                placeholder="Hole #"
+                placeholder="Reikä #"
                 value={d.hole_number}
                 onChange={(e) => update(i, { hole_number: e.target.value })}
                 className="h-11 w-24"
               />
               <Input
-                placeholder="Event (optional)"
+                placeholder="Tapahtuma (valinnainen)"
                 value={d.event_name}
                 onChange={(e) => update(i, { event_name: e.target.value })}
                 className="h-11 flex-1"

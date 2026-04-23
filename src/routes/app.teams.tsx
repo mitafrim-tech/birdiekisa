@@ -52,10 +52,10 @@ function TeamsPage() {
         setActiveTeamId(createdTeam.id);
       }
 
-      toast.success(`${name} created`);
+      toast.success(`Tiimi ${name} luotu`);
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create team");
+      toast.error(err instanceof Error ? err.message : "Tiimin luonti epäonnistui");
     } finally {
       setCreating(false);
     }
@@ -72,7 +72,7 @@ function TeamsPage() {
     }
     await refresh();
     if (typeof data === "string") setActiveTeamId(data);
-    toast.success("Joined team");
+    toast.success("Liityit tiimiin");
     navigate({ to: "/app" });
   };
 
@@ -83,7 +83,7 @@ function TeamsPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <h1 className="font-display text-3xl">Your teams</h1>
+      <h1 className="font-display text-3xl">Tiimisi</h1>
 
       {teams.length > 0 && (
         <div className="space-y-2">
@@ -107,7 +107,7 @@ function TeamsPage() {
                 <div className="font-display text-lg">{t.name}</div>
                 {t.admin_id === user?.id && (
                   <div className="text-[10px] uppercase tracking-wider text-accent-foreground bg-accent inline-block px-2 py-0.5 rounded font-semibold">
-                    Admin
+                    Ylläpitäjä
                   </div>
                 )}
               </div>
@@ -118,13 +118,13 @@ function TeamsPage() {
 
       {!showCreate && (
         <Button onClick={() => setShowCreate(true)} className="w-full h-12 rounded-xl font-display">
-          <Plus className="w-5 h-5 mr-2" /> Create a team
+          <Plus className="w-5 h-5 mr-2" /> Luo tiimi
         </Button>
       )}
 
       {showCreate && (
         <form onSubmit={create} className="bg-card rounded-3xl p-5 shadow-card space-y-4">
-          <h2 className="font-display text-xl">New team</h2>
+          <h2 className="font-display text-xl">Uusi tiimi</h2>
 
           <div className="flex flex-col items-center">
             <button
@@ -149,21 +149,21 @@ function TeamsPage() {
               className="hidden"
               onChange={(e) => handleLogo(e.target.files?.[0] ?? null)}
             />
-            <p className="text-xs text-muted-foreground mt-2">Tap to add a logo</p>
+            <p className="text-xs text-muted-foreground mt-2">Lisää logo</p>
           </div>
 
           <div>
-            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Team name</Label>
+            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Tiimin nimi</Label>
             <Input required value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className="h-12 mt-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Season start</Label>
+              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi alkaa</Label>
               <Input type="date" value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)} className="h-12 mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Season end</Label>
+              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi päättyy</Label>
               <Input type="date" value={seasonEnd} onChange={(e) => setSeasonEnd(e.target.value)} className="h-12 mt-1" />
             </div>
           </div>
@@ -171,11 +171,11 @@ function TeamsPage() {
           <div className="flex gap-2">
             {teams.length > 0 && (
               <Button type="button" variant="outline" onClick={() => setShowCreate(false)} className="flex-1 h-12 rounded-xl">
-                Cancel
+                Peruuta
               </Button>
             )}
             <Button type="submit" disabled={creating || !name.trim()} className="flex-1 h-12 rounded-xl font-display">
-              {creating ? "Creating..." : "Create →"}
+              {creating ? "Luodaan..." : "Luo →"}
             </Button>
           </div>
         </form>
@@ -184,11 +184,11 @@ function TeamsPage() {
       <div className="bg-secondary rounded-3xl p-5 space-y-3">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5" />
-          <h2 className="font-display text-lg">Have an invite code?</h2>
+          <h2 className="font-display text-lg">Onko kutsukoodi?</h2>
         </div>
         <form onSubmit={joinByCode} className="flex gap-2">
           <Input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="abc12345" className="h-12" />
-          <Button type="submit" className="h-12 rounded-xl">Join</Button>
+          <Button type="submit" className="h-12 rounded-xl">Liity</Button>
         </form>
       </div>
     </div>

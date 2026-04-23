@@ -32,7 +32,7 @@ interface ShotRow {
 }
 
 const SHOT_LABELS: Record<ShotRow["shot_type"], { label: string; emoji: string; color: string }> = {
-  hole_in_one: { label: "Hole-in-one", emoji: "⛳", color: "bg-flag text-primary-foreground" },
+  hole_in_one: { label: "Holari", emoji: "⛳", color: "bg-flag text-primary-foreground" },
   albatross: { label: "Albatross", emoji: "🪶", color: "bg-sky text-night" },
   eagle: { label: "Eagle", emoji: "🦅", color: "bg-accent text-night" },
 };
@@ -70,20 +70,20 @@ function HallOfFame() {
       <div className="rounded-3xl bg-gradient-sunset p-6 text-night shadow-card relative overflow-hidden">
         <Award className="absolute -right-4 -top-4 w-32 h-32 text-night/10" />
         <div className="relative">
-          <div className="text-xs uppercase tracking-widest font-semibold opacity-80">Hall of fame</div>
-          <h1 className="font-display text-3xl mt-1">Legends</h1>
+          <div className="text-xs uppercase tracking-widest font-semibold opacity-80">Kunnian galleria</div>
+          <h1 className="font-display text-3xl mt-1">Legendat</h1>
         </div>
       </div>
 
       {/* Champions */}
       <section>
         <h2 className="font-display text-xl mb-3 flex items-center gap-2">
-          <Crown className="w-5 h-5 text-accent" /> Past champions
+          <Crown className="w-5 h-5 text-accent" /> Edelliset mestarit
         </h2>
         {loading ? (
           <div className="h-20 bg-muted rounded-2xl animate-pulse" />
         ) : champs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No seasons archived yet. The admin can crown a champion from team settings.</p>
+          <p className="text-sm text-muted-foreground">Yhtään kautta ei ole vielä arkistoitu. Ylläpitäjä voi kruunata mestarin tiimin asetuksista.</p>
         ) : (
           <div className="space-y-2">
             {champs.map((c) => (
@@ -94,14 +94,14 @@ function HallOfFame() {
                   <div className="w-12 h-12 rounded-xl bg-primary/20" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="font-display text-lg truncate">{c.profiles?.nickname ?? "Player"}</div>
+                  <div className="font-display text-lg truncate">{c.profiles?.nickname ?? "Pelaaja"}</div>
                   <div className="text-xs text-muted-foreground">
                     {c.season_label ?? `${format(new Date(c.season_start), "MMM yyyy")} – ${format(new Date(c.season_end), "MMM yyyy")}`}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-display text-2xl text-primary">{c.birdie_count}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">birdies</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">birdiet</div>
                 </div>
               </div>
             ))}
@@ -111,11 +111,11 @@ function HallOfFame() {
 
       {/* Notable shots */}
       <section>
-        <h2 className="font-display text-xl mb-3">Notable shots</h2>
+        <h2 className="font-display text-xl mb-3">Mainittavat lyönnit</h2>
         {loading ? (
           <div className="h-20 bg-muted rounded-2xl animate-pulse" />
         ) : shots.length === 0 ? (
-          <EmptyState icon={Award} title="No legendary shots yet" description="Eagles, albatrosses and hole-in-ones will show up here." />
+          <EmptyState icon={Award} title="Ei vielä legendaarisia lyöntejä" description="Eaglet, albatrossit ja holarit ilmestyvät tänne." />
         ) : (
           <div className="space-y-2">
             {shots.map((s) => {
@@ -128,11 +128,11 @@ function HallOfFame() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-display text-base">
-                        {s.profiles?.nickname ?? "Player"} <span className="text-muted-foreground font-sans font-normal">— {meta.label}</span>
+                        {s.profiles?.nickname ?? "Pelaaja"} <span className="text-muted-foreground font-sans font-normal">— {meta.label}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {s.course_name}
-                        {s.hole_number ? ` • Hole ${s.hole_number}` : ""}
+                        {s.hole_number ? ` • Reikä ${s.hole_number}` : ""}
                         {" • "}
                         {format(new Date(s.played_on), "MMM d, yyyy")}
                       </div>
