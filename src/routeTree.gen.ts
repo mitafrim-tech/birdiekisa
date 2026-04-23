@@ -17,8 +17,10 @@ import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppTeamsRouteImport } from './routes/app.teams'
 import { Route as AppTeamSettingsRouteImport } from './routes/app.team-settings'
+import { Route as AppRulesRouteImport } from './routes/app.rules'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppLogRouteImport } from './routes/app.log'
+import { Route as AppLegendsAdminRouteImport } from './routes/app.legends-admin'
 import { Route as AppHallOfFameRouteImport } from './routes/app.hall-of-fame'
 import { Route as AppPlayerIdRouteImport } from './routes/app.player.$id'
 
@@ -62,6 +64,11 @@ const AppTeamSettingsRoute = AppTeamSettingsRouteImport.update({
   path: '/team-settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRulesRoute = AppRulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -70,6 +77,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
 const AppLogRoute = AppLogRouteImport.update({
   id: '/log',
   path: '/log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLegendsAdminRoute = AppLegendsAdminRouteImport.update({
+  id: '/legends-admin',
+  path: '/legends-admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
@@ -88,8 +100,10 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/legends-admin': typeof AppLegendsAdminRoute
   '/app/log': typeof AppLogRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/rules': typeof AppRulesRoute
   '/app/team-settings': typeof AppTeamSettingsRoute
   '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -101,8 +115,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/legends-admin': typeof AppLegendsAdminRoute
   '/app/log': typeof AppLogRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/rules': typeof AppRulesRoute
   '/app/team-settings': typeof AppTeamSettingsRoute
   '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -116,8 +132,10 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/app/hall-of-fame': typeof AppHallOfFameRoute
+  '/app/legends-admin': typeof AppLegendsAdminRoute
   '/app/log': typeof AppLogRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/rules': typeof AppRulesRoute
   '/app/team-settings': typeof AppTeamSettingsRoute
   '/app/teams': typeof AppTeamsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -132,8 +150,10 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/app/hall-of-fame'
+    | '/app/legends-admin'
     | '/app/log'
     | '/app/profile'
+    | '/app/rules'
     | '/app/team-settings'
     | '/app/teams'
     | '/auth/callback'
@@ -145,8 +165,10 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/app/hall-of-fame'
+    | '/app/legends-admin'
     | '/app/log'
     | '/app/profile'
+    | '/app/rules'
     | '/app/team-settings'
     | '/app/teams'
     | '/auth/callback'
@@ -159,8 +181,10 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/app/hall-of-fame'
+    | '/app/legends-admin'
     | '/app/log'
     | '/app/profile'
+    | '/app/rules'
     | '/app/team-settings'
     | '/app/teams'
     | '/auth/callback'
@@ -235,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTeamSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/rules': {
+      id: '/app/rules'
+      path: '/rules'
+      fullPath: '/app/rules'
+      preLoaderRoute: typeof AppRulesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/profile': {
       id: '/app/profile'
       path: '/profile'
@@ -247,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/log'
       fullPath: '/app/log'
       preLoaderRoute: typeof AppLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/legends-admin': {
+      id: '/app/legends-admin'
+      path: '/legends-admin'
+      fullPath: '/app/legends-admin'
+      preLoaderRoute: typeof AppLegendsAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/hall-of-fame': {
@@ -268,8 +306,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppHallOfFameRoute: typeof AppHallOfFameRoute
+  AppLegendsAdminRoute: typeof AppLegendsAdminRoute
   AppLogRoute: typeof AppLogRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppRulesRoute: typeof AppRulesRoute
   AppTeamSettingsRoute: typeof AppTeamSettingsRoute
   AppTeamsRoute: typeof AppTeamsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -278,8 +318,10 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppHallOfFameRoute: AppHallOfFameRoute,
+  AppLegendsAdminRoute: AppLegendsAdminRoute,
   AppLogRoute: AppLogRoute,
   AppProfileRoute: AppProfileRoute,
+  AppRulesRoute: AppRulesRoute,
   AppTeamSettingsRoute: AppTeamSettingsRoute,
   AppTeamsRoute: AppTeamsRoute,
   AppIndexRoute: AppIndexRoute,
@@ -298,3 +340,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
