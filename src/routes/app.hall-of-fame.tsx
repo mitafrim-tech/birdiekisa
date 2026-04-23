@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
-import { Award, Crown } from "lucide-react";
+import { Award, Crown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/app/hall-of-fame")({
   component: HallOfFame,
@@ -17,6 +19,12 @@ interface ChampRow {
   season_end: string;
   birdie_count: number;
   season_label: string | null;
+  category: string | null;
+  course_name: string | null;
+  hole_number: number | null;
+  event_date: string | null;
+  competition: string | null;
+  is_manual: boolean | null;
   profiles: { nickname: string | null; avatar_url: string | null } | null;
 }
 
@@ -38,10 +46,13 @@ const SHOT_LABELS: Record<ShotRow["shot_type"], { label: string; emoji: string; 
 };
 
 function HallOfFame() {
+  const { user } = useAuth();
   const { activeTeam } = useTeams();
   const [champs, setChamps] = useState<ChampRow[]>([]);
   const [shots, setShots] = useState<ShotRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isAdmin = !!(user && activeTeam && user.id === activeTeam.admin_id);
 
   useEffect(() => {
     if (!activeTeam) return;
@@ -49,7 +60,7 @@ function HallOfFame() {
     (async () => {
       const { data: champData } = await supabase
         .from("champions")
-        .select("id, user_id, season_start, season_end, birdie_count, season_label, profiles:profiles!champions_user_id_fkey(nickname, avatar_url)")
+        .select("id, user_id, season_start, season_end, birdie_count, season_label, category, course_name, hole_number, event_date, competition, is_manual, profiles:profiles!champions_user_id_fkey(nickname, avatar_url)")
         .eq("team_id", activeTeam.id)
         .order("season_end", { ascending: false });
 
