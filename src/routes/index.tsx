@@ -11,8 +11,8 @@ import { Trophy, Flag, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Birdie — Track your golf season with friends" },
-      { name: "description", content: "Log birdies, eagles, and hole-in-ones. See who tops the leaderboard. Built for golf friend groups." },
+      { title: "Birdie — Pidä kirjaa golfkaudestasi kaverien kanssa" },
+      { name: "description", content: "Kirjaa birdiet, eaglet ja holarit. Kuka johtaa tulostaulua? Tehty golfporukoille." },
     ],
   }),
   component: LandingPage,
@@ -44,7 +44,7 @@ function LandingPage() {
       toast.error(error.message);
     } else {
       setSent(true);
-      toast.success("Check your email for the magic link");
+      toast.success("Tarkista sähköpostisi — taikalinkki on lähetetty");
     }
   };
 
@@ -73,9 +73,9 @@ function LandingPage() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="font-display text-5xl sm:text-6xl leading-[0.95] mb-6 text-balance"
         >
-          Who's the<br />
-          <span className="text-accent">birdie king</span><br />
-          of the crew?
+          Kuka on kauden<br />
+          <span className="text-accent">pirkkokisan</span><br />
+          kingi?
         </motion.h1>
 
         <motion.p
@@ -84,7 +84,7 @@ function LandingPage() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="text-lg text-primary-foreground/85 mb-10 text-balance"
         >
-          Log every under-par shot. Climb the leaderboard. Become a season legend with your golf friends.
+          Kirjaa jokainen birdie. Kiipeä tulostaulun kärkeen. Nouse kauden legendaksi golfkavereidesi kanssa.
         </motion.p>
 
         <motion.div
@@ -98,28 +98,28 @@ function LandingPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-primary/15 flex items-center justify-center mb-4">
                 <Sparkles className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="font-display text-2xl mb-2">Check your inbox</h2>
+              <h2 className="font-display text-2xl mb-2">Tarkista sähköpostisi</h2>
               <p className="text-muted-foreground text-sm">
-                We sent a magic link to <span className="font-semibold text-foreground">{email}</span>. Tap it to sign in.
+                Lähetimme taikalinkin osoitteeseen <span className="font-semibold text-foreground">{email}</span>. Klikkaa sitä kirjautuaksesi sisään.
               </p>
               <Button
                 variant="ghost"
                 onClick={() => { setSent(false); setEmail(""); }}
                 className="mt-4"
               >
-                Use a different email
+                Käytä eri sähköpostia
               </Button>
             </div>
           ) : (
             <form onSubmit={handleMagicLink} className="space-y-4">
               <div>
                 <label className="font-display text-sm uppercase tracking-wider text-muted-foreground block mb-2">
-                  Sign in with email
+                  Kirjaudu sisään sähköpostilla
                 </label>
                 <Input
                   type="email"
                   required
-                  placeholder="you@example.com"
+                  placeholder="sina@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 text-base"
@@ -130,10 +130,10 @@ function LandingPage() {
                 disabled={sending}
                 className="w-full h-12 text-base font-display tracking-wide bg-night hover:bg-night/90 text-primary-foreground rounded-xl"
               >
-                {sending ? "Sending magic link..." : "Send magic link →"}
+                {sending ? "Lähetetään taikalinkkiä..." : "Lähetä taikalinkki →"}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                No password needed. We'll email you a one-tap sign-in link.
+                Salasanaa ei tarvita. Lähetämme sähköpostiisi kirjautumislinkin.
               </p>
             </form>
           )}
@@ -146,9 +146,9 @@ function LandingPage() {
           className="mt-12 grid grid-cols-3 gap-3 text-center"
         >
           {[
-            { icon: Flag, label: "Log rounds" },
-            { icon: Trophy, label: "Crown champs" },
-            { icon: Sparkles, label: "Hall of fame" },
+            { icon: Flag, label: "Kirjaa kierrokset" },
+            { icon: Trophy, label: "Kruunaa mestari" },
+            { icon: Sparkles, label: "Legendat" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="bg-primary-foreground/10 backdrop-blur rounded-2xl p-3">
               <Icon className="w-5 h-5 mx-auto mb-1 text-accent" strokeWidth={2.5} />

@@ -49,10 +49,10 @@ function ProfilePage() {
         .update({ nickname: nickname.trim(), avatar_url: avatarUrl })
         .eq("id", user.id);
       if (error) throw error;
-      toast.success("Profile updated");
+      toast.success("Profiili päivitetty");
       setFile(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
+      toast.error(err instanceof Error ? err.message : "Tallennus epäonnistui");
     } finally {
       setSaving(false);
     }
@@ -60,7 +60,7 @@ function ProfilePage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <h1 className="font-display text-3xl">Your profile</h1>
+      <h1 className="font-display text-3xl">Profiilisi</h1>
 
       <div className="flex flex-col items-center gap-3">
         <button
@@ -88,7 +88,7 @@ function ProfilePage() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Nickname</Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Pelaajanimi</Label>
         <Input
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
@@ -98,14 +98,14 @@ function ProfilePage() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Sähköposti</Label>
         <div className="h-12 mt-1 flex items-center px-3 rounded-md bg-muted text-muted-foreground text-sm">
           {user.email}
         </div>
       </div>
 
       <Button onClick={save} disabled={saving || !nickname.trim()} className="w-full h-12 rounded-xl font-display">
-        {saving ? "Saving..." : "Save changes"}
+        {saving ? "Tallennetaan..." : "Tallenna muutokset"}
       </Button>
     </div>
   );

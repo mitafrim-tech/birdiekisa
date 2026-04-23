@@ -23,7 +23,7 @@ function JoinTeam() {
   useEffect(() => {
     supabase.rpc("get_team_by_join_code", { _code: code }).then(({ data, error }) => {
       if (error || !data || (Array.isArray(data) && data.length === 0)) {
-        setError("Invalid invite link");
+        setError("Virheellinen kutsulinkki");
       } else {
         const t = Array.isArray(data) ? data[0] : data;
         setTeam(t);
@@ -51,7 +51,7 @@ function JoinTeam() {
     }
     await refresh();
     if (typeof data === "string") setActiveTeamId(data);
-    toast.success(`Joined ${team.name}`);
+    toast.success(`Liityit tiimiin ${team.name}`);
     navigate({ to: "/app" });
   };
 
@@ -60,9 +60,9 @@ function JoinTeam() {
       <div className="bg-card text-card-foreground rounded-3xl p-8 max-w-sm w-full shadow-card text-center">
         {error ? (
           <>
-            <h1 className="font-display text-2xl mb-2">Oops</h1>
+            <h1 className="font-display text-2xl mb-2">Hups</h1>
             <p className="text-muted-foreground mb-6">{error}</p>
-            <Button onClick={() => navigate({ to: "/app" })}>Go home</Button>
+            <Button onClick={() => navigate({ to: "/app" })}>Etusivulle</Button>
           </>
         ) : team ? (
           <>
@@ -73,10 +73,10 @@ function JoinTeam() {
                 <Flag className="w-10 h-10 text-primary-foreground" strokeWidth={3} />
               </div>
             )}
-            <p className="text-sm uppercase tracking-wider text-muted-foreground font-semibold">You're invited to</p>
+            <p className="text-sm uppercase tracking-wider text-muted-foreground font-semibold">Sinut on kutsuttu tiimiin</p>
             <h1 className="font-display text-3xl mb-6 mt-1">{team.name}</h1>
             <Button onClick={handleJoin} disabled={joining} className="w-full h-12 font-display rounded-xl">
-              {joining ? "Joining..." : "Join the crew →"}
+              {joining ? "Liitytään..." : "Liity tiimiin →"}
             </Button>
           </>
         ) : (

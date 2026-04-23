@@ -22,10 +22,10 @@ type TabDef = {
 };
 
 const TABS: TabDef[] = [
-  { to: "/app", label: "Leaderboard", icon: Trophy, exact: true },
-  { to: "/app/log", label: "Log round", icon: CirclePlus, highlight: true },
-  { to: "/app/hall-of-fame", label: "Legends", icon: Award },
-  { to: "/app/profile", label: "Me", icon: UserIcon },
+  { to: "/app", label: "Tulostaulu", icon: Trophy, exact: true },
+  { to: "/app/log", label: "Kirjaa kierros", icon: CirclePlus, highlight: true },
+  { to: "/app/hall-of-fame", label: "Legendat", icon: Award },
+  { to: "/app/profile", label: "Minä", icon: UserIcon },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -54,15 +54,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
               <div className="text-left">
                 <div className="font-display text-base leading-tight">
-                  {activeTeam?.name ?? "No team"}
+                  {activeTeam?.name ?? "Ei tiimiä"}
                 </div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                  Switch <ChevronDown className="w-3 h-3" />
+                  Vaihda <ChevronDown className="w-3 h-3" />
                 </div>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64">
-              <DropdownMenuLabel>Your teams</DropdownMenuLabel>
+              <DropdownMenuLabel>Tiimisi</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {teams.map((t) => (
                 <DropdownMenuItem
@@ -83,11 +83,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate({ to: "/app/teams" })}>
-                <Users className="w-4 h-4 mr-2" /> Manage teams
+                <Users className="w-4 h-4 mr-2" /> Hallinnoi tiimejä
               </DropdownMenuItem>
               {activeTeam && user?.id === activeTeam.admin_id && (
                 <DropdownMenuItem onClick={() => navigate({ to: "/app/team-settings" })}>
-                  <Settings className="w-4 h-4 mr-2" /> Team settings
+                  <Settings className="w-4 h-4 mr-2" /> Tiimin asetukset
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   navigate({ to: "/" });
                 }}
               >
-                <LogOut className="w-4 h-4 mr-2" /> Sign out
+                <LogOut className="w-4 h-4 mr-2" /> Kirjaudu ulos
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -57,10 +57,10 @@ function Onboarding() {
         email: user.email,
       });
       if (error) throw error;
-      toast.success("Profile saved");
+      toast.success("Profiili tallennettu");
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save profile");
+      toast.error(err instanceof Error ? err.message : "Profiilin tallennus epäonnistui");
     } finally {
       setSaving(false);
     }
@@ -69,8 +69,8 @@ function Onboarding() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto px-6 pt-12 pb-20">
-        <h1 className="font-display text-4xl mb-2">You're in!</h1>
-        <p className="text-muted-foreground mb-8">Set your nickname and pick a photo so your crew knows it's you.</p>
+        <h1 className="font-display text-4xl mb-2">Tervetuloa mukaan!</h1>
+        <p className="text-muted-foreground mb-8">Valitse pelaajanimi ja kuva, jotta tiimisi tunnistaa sinut.</p>
 
         <form onSubmit={handleSave} className="space-y-6">
           <div className="flex flex-col items-center gap-4">
@@ -96,17 +96,17 @@ function Onboarding() {
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
             />
-            <p className="text-xs text-muted-foreground">Tap to take a selfie or upload a photo</p>
+            <p className="text-xs text-muted-foreground">Ota selfie tai lisää kuva</p>
           </div>
 
           <div>
             <label className="font-display text-sm uppercase tracking-wider text-muted-foreground block mb-2">
-              Nickname
+              Pelaajanimi
             </label>
             <Input
               required
               maxLength={30}
-              placeholder="Birdie King"
+              placeholder="Birdie-kingi"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               className="h-12 text-lg font-display"
@@ -118,7 +118,7 @@ function Onboarding() {
             disabled={saving || !nickname.trim()}
             className="w-full h-12 text-base font-display tracking-wide rounded-xl"
           >
-            {saving ? "Saving..." : "Let's go →"}
+            {saving ? "Tallennetaan..." : "Mennään →"}
           </Button>
         </form>
       </div>

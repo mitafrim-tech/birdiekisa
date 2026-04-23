@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
 import { Camera, Copy, Crown, Flag } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/app/team-settings")({
   component: TeamSettings,
@@ -27,8 +28,12 @@ function TeamSettings() {
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
-  if (!activeTeam) return <Navigate to="/app" />;
-  if (user?.id !== activeTeam.admin_id) return <Navigate to="/app" />;
+  const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
+  useEffect(() => {
+    if (notAllowed) navigate({ to: "/app" });
+  }, [notAllowed, navigate]);
+  if (!activeTeam) return null;
+  if (user && user.id !== activeTeam.admin_id) return null;
 
   const inviteUrl = typeof window !== "undefined"
     ? `${window.location.origin}/join/${activeTeam.join_code}`
@@ -57,9 +62,9 @@ function TeamSettings() {
         .eq("id", activeTeam.id);
       if (error) throw error;
       await refresh();
-      toast.success("Team updated");
+      toast.success("Tiimi päivitetty");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
+      toast.error(err instanceof Error ? err.message : "Tallennus epäonnistui");
     } finally {
       setSaving(false);
     }
@@ -68,18 +73,18 @@ function TeamSettings() {
   const copyInvite = async () => {
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      toast.success("Invite link copied");
+      toast.success("Kutsulinkki kopioitu");
     } catch {
-      toast.error("Could not copy");
+      toast.error("Kopiointi epäonnistui");
     }
   };
 
   const archiveSeason = async () => {
     if (!activeTeam.season_start || !activeTeam.season_end) {
-      toast.error("Set a season start and end date first");
+      toast.error("Aseta ensin kauden alku- ja loppupäivä");
       return;
     }
-    if (!confirm("End this season and crown the current leader as champion? This adds them to the Hall of Fame.")) return;
+    if (!confirm("Päätetäänkö kausi ja kruunataanko kärjessä oleva mestariksi? Hänet lisätään Legendoihin.")) return;
     setArchiving(true);
     try {
       // Determine leader by birdie totals within season
@@ -101,7 +106,7 @@ function TeamSettings() {
         }
       });
       if (!leader) {
-        toast.error("No rounds logged in this season — no champion to crown.");
+        toast.error("Tällä kaudella ei ole kirjattuja kierroksia — ei kruunattavaa mestaria.");
         setArchiving(false);
         return;
       }
@@ -113,10 +118,10 @@ function TeamSettings() {
         birdie_count: max,
       });
       if (error) throw error;
-      toast.success("Champion crowned! 🏆");
+      toast.success("Mestari kruunattu! 🏆");
       navigate({ to: "/app/hall-of-fame" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not archive season");
+      toast.error(err instanceof Error ? err.message : "Kauden arkistointi epäonnistui");
     } finally {
       setArchiving(false);
     }
@@ -124,18 +129,18 @@ function TeamSettings() {
 
   return (
     <div className="space-y-6 pb-8">
-      <h1 className="font-display text-3xl">Team settings</h1>
+      <h1 className="font-display text-3xl">Tiimin asetukset</h1>
 
       {/* Invite */}
       <div className="rounded-3xl bg-gradient-hero p-5 text-primary-foreground shadow-card">
-        <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Share invite</div>
-        <div className="font-display text-lg mt-1 mb-3">Anyone with this link can join</div>
+        <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Jaa kutsu</div>
+        <div className="font-display text-lg mt-1 mb-3">Kuka tahansa, jolla on tämä linkki, voi liittyä</div>
         <div className="flex gap-2">
           <div className="flex-1 bg-primary-foreground/15 rounded-xl px-3 py-2 text-sm truncate">
             {inviteUrl}
           </div>
           <Button onClick={copyInvite} variant="secondary" className="rounded-xl">
-            <Copy className="w-4 h-4 mr-1" /> Copy
+            <Copy className="w-4 h-4 mr-1" /> Kopioi
           </Button>
         </div>
       </div>
@@ -167,34 +172,34 @@ function TeamSettings() {
         </div>
 
         <div>
-          <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Team name</Label>
+          <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Tiimin nimi</Label>
           <Input required value={name} onChange={(e) => setName(e.target.value)} className="h-12 mt-1" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Season start</Label>
+            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi alkaa</Label>
             <Input type="date" value={seasonStart ?? ""} onChange={(e) => setSeasonStart(e.target.value)} className="h-12 mt-1" />
           </div>
           <div>
-            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Season end</Label>
+            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi päättyy</Label>
             <Input type="date" value={seasonEnd ?? ""} onChange={(e) => setSeasonEnd(e.target.value)} className="h-12 mt-1" />
           </div>
         </div>
         <Button type="submit" disabled={saving} className="w-full h-12 rounded-xl font-display">
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? "Tallennetaan..." : "Tallenna muutokset"}
         </Button>
       </form>
 
       <div className="bg-card rounded-3xl p-5 shadow-card border-2 border-dashed border-flag/30">
         <div className="flex items-center gap-2 mb-2">
           <Crown className="w-5 h-5 text-flag" />
-          <h2 className="font-display text-lg">End season & crown champion</h2>
+          <h2 className="font-display text-lg">Päätä kausi ja kruunaa mestari</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Archives the current season's leader to the Hall of Fame. Update the season dates afterward to start a new season.
+          Arkistoi kauden kärjessä olevan pelaajan Legendoihin. Päivitä sen jälkeen kauden päivämäärät aloittaaksesi uuden kauden.
         </p>
         <Button onClick={archiveSeason} disabled={archiving} variant="destructive" className="w-full h-12 rounded-xl font-display">
-          {archiving ? "Crowning..." : "Crown champion 🏆"}
+          {archiving ? "Kruunataan..." : "Kruunaa mestari 🏆"}
         </Button>
       </div>
     </div>

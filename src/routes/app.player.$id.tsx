@@ -70,7 +70,7 @@ function PlayerProfile() {
   return (
     <div className="space-y-6 pb-8">
       <Link to="/app" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="w-4 h-4" /> Back
+        <ArrowLeft className="w-4 h-4" /> Takaisin
       </Link>
 
       <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-6 shadow-card flex items-center gap-4">
@@ -82,26 +82,26 @@ function PlayerProfile() {
           </div>
         )}
         <div>
-          <h1 className="font-display text-3xl leading-none">{player?.nickname ?? "Player"}</h1>
-          <div className="text-sm opacity-90 mt-1">{rounds.length} rounds this season</div>
+          <h1 className="font-display text-3xl leading-none">{player?.nickname ?? "Pelaaja"}</h1>
+          <div className="text-sm opacity-90 mt-1">{rounds.length} kierrosta tällä kaudella</div>
         </div>
       </div>
 
       <div className="grid grid-cols-4 gap-2">
-        <Stat label="Birdies" value={totals.birdies} highlight />
-        <Stat label="Eagles" value={totals.eagles} />
-        <Stat label="Albs" value={totals.albatrosses} />
-        <Stat label="HIO" value={totals.hole_in_ones} />
+        <Stat label="Birdiet" value={totals.birdies} highlight />
+        <Stat label="Eaglet" value={totals.eagles} />
+        <Stat label="Albat" value={totals.albatrosses} />
+        <Stat label="Holarit" value={totals.hole_in_ones} />
       </div>
 
       <div>
-        <h2 className="font-display text-xl mb-3">Rounds</h2>
+        <h2 className="font-display text-xl mb-3">Kierrokset</h2>
         {loading ? (
           <div className="space-y-2">
             {[0, 1].map((i) => <div key={i} className="h-16 rounded-2xl bg-muted animate-pulse" />)}
           </div>
         ) : rounds.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No rounds yet.</p>
+          <p className="text-sm text-muted-foreground">Ei vielä kierroksia.</p>
         ) : (
           <div className="space-y-2">
             {rounds.map((r) => (
@@ -109,12 +109,12 @@ function PlayerProfile() {
                 <div className="min-w-0">
                   <div className="font-display text-base truncate">{r.course_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {format(new Date(r.played_on), "MMM d, yyyy")} • {r.holes_played} holes
+                    {format(new Date(r.played_on), "MMM d, yyyy")} • {r.holes_played} reikää
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-display text-2xl text-primary">{r.birdies}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">birdies</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">birdiet</div>
                 </div>
               </div>
             ))}
