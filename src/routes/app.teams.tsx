@@ -10,7 +10,7 @@ import { uploadUserFile } from "@/lib/upload";
 import { Camera, Flag, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/teams")({
+export const Route = createFileRoute("/app/teams")({
   component: TeamsPage,
 });
 

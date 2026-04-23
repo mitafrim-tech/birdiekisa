@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/log")({
+export const Route = createFileRoute("/app/log")({
   component: LogRound,
 });
 

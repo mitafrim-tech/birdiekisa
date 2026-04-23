@@ -5,7 +5,7 @@ import { useTeams } from "@/lib/team-context";
 import { ArrowLeft, Flag } from "lucide-react";
 import { format } from "date-fns";
 
-export const Route = createFileRoute("/_app/player/$id")({
+export const Route = createFileRoute("/app/player/$id")({
   component: PlayerProfile,
 });
 
