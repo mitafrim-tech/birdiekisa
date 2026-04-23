@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -8,14 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Share2, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
+import { CelebrationModal, type CelebrationKind } from "@/components/CelebrationModal";
+import { CoursePicker } from "@/components/CoursePicker";
+import { buildWhatsAppMessage, openWhatsAppShare } from "@/lib/share";
 
 export const Route = createFileRoute("/app/log")({
   component: LogRound,
 });
 
 const HOLE_OPTIONS = [9, 18];
+
+type Step = "round" | "details" | "saved";
+type ShotDetail = { course_name: string; hole_number: string; event_name: string };
 
 function LogRound() {
   const { user } = useAuth();
@@ -30,21 +35,38 @@ function LogRound() {
   const [eagles, setEagles] = useState(0);
   const [albatrosses, setAlbatrosses] = useState(0);
   const [holeInOnes, setHoleInOnes] = useState(0);
-  const [step, setStep] = useState<"round" | "details">("round");
-  // Per-shot details: arrays sized to count
-  type ShotDetail = { course_name: string; hole_number: string; event_name: string };
+  const [step, setStep] = useState<Step>("round");
+
   const blank: ShotDetail = { course_name: "", hole_number: "", event_name: "" };
   const [eagleDetails, setEagleDetails] = useState<ShotDetail[]>([]);
   const [albatrossDetails, setAlbatrossDetails] = useState<ShotDetail[]>([]);
   const [hioDetails, setHioDetails] = useState<ShotDetail[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Post-save state
+  const [celebration, setCelebration] = useState<CelebrationKind | null>(null);
+  const [celebrationQueue, setCelebrationQueue] = useState<CelebrationKind[]>([]);
+  const [playerName, setPlayerName] = useState("Pelaaja");
+
   const finalHoles = holes === -1 ? Number(customHoles) || 0 : holes;
+
+  // Load player nickname for celebrations / share
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (data?.nickname) setPlayerName(data.nickname);
+    })();
+  }, [user]);
 
   const goToDetails = (e: React.FormEvent) => {
     e.preventDefault();
     if (!course.trim()) {
-      toast.error("Lisää kentän nimi");
+      toast.error("Valitse kenttä");
       return;
     }
     if (finalHoles <= 0) {
@@ -52,11 +74,9 @@ function LogRound() {
       return;
     }
     if (eagles + albatrosses + holeInOnes === 0) {
-      // Skip details step
       submit();
       return;
     }
-    // Initialize detail rows with course_name pre-filled
     setEagleDetails(Array.from({ length: eagles }, () => ({ ...blank, course_name: course })));
     setAlbatrossDetails(Array.from({ length: albatrosses }, () => ({ ...blank, course_name: course })));
     setHioDetails(Array.from({ length: holeInOnes }, () => ({ ...blank, course_name: course })));
@@ -84,7 +104,12 @@ function LogRound() {
         .single();
       if (error || !round) throw error ?? new Error("Kierroksen tallennus epäonnistui");
 
-      // Insert notable shots
+      // Ensure course is in team courses (best-effort, ignore unique violation)
+      await supabase
+        .from("team_courses")
+        .insert({ team_id: activeTeam.id, name: course.trim(), added_by: user.id, is_official: false })
+        .then(() => undefined, () => undefined);
+
       const shots: Array<{
         round_id: string;
         team_id: string;
@@ -117,16 +142,19 @@ function LogRound() {
         if (shotsErr) console.error(shotsErr);
       }
 
-      if (holeInOnes > 0) {
-        confetti({
-          particleCount: 200,
-          spread: 100,
-          origin: { y: 0.5 },
-          colors: ["#fbbf24", "#10b981", "#ec4899", "#3b82f6"],
-        });
+      // Build celebration queue: rarest first
+      const queue: CelebrationKind[] = [];
+      for (let i = 0; i < holeInOnes; i++) queue.push("hole_in_one");
+      for (let i = 0; i < albatrosses; i++) queue.push("albatross");
+      for (let i = 0; i < eagles; i++) queue.push("eagle");
+
+      if (queue.length > 0) {
+        setCelebration(queue[0]);
+        setCelebrationQueue(queue.slice(1));
+      } else {
+        toast.success("Kierros kirjattu!");
       }
-      toast.success("Kierros kirjattu!");
-      navigate({ to: "/app" });
+      setStep("saved");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Kierroksen tallennus epäonnistui");
     } finally {
@@ -134,29 +162,115 @@ function LogRound() {
     }
   };
 
+  const closeCelebration = () => {
+    if (celebrationQueue.length > 0) {
+      setCelebration(celebrationQueue[0]);
+      setCelebrationQueue(celebrationQueue.slice(1));
+    } else {
+      setCelebration(null);
+    }
+  };
+
+  const handleShare = () => {
+    const message = buildWhatsAppMessage({
+      course_name: course.trim(),
+      played_on: date,
+      birdies,
+      eagles,
+      albatrosses,
+      hole_in_ones: holeInOnes,
+      player_nickname: playerName,
+      team_name: activeTeam?.name ?? "Tiimi",
+      app_url: typeof window !== "undefined" ? window.location.origin : "",
+    });
+    openWhatsAppShare(message);
+  };
+
+  // ----- Saved screen -----
+  if (step === "saved") {
+    const hasNotable = eagles + albatrosses + holeInOnes > 0;
+    return (
+      <>
+        <CelebrationModal
+          kind={celebration}
+          playerName={playerName}
+          courseName={course}
+          onClose={closeCelebration}
+        />
+        <div className="space-y-5 pb-8">
+          <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-6 shadow-card text-center">
+            <div className="w-14 h-14 mx-auto rounded-full bg-primary-foreground/20 flex items-center justify-center mb-3">
+              <Check className="w-7 h-7" strokeWidth={3} />
+            </div>
+            <h1 className="font-display text-3xl">Kierros kirjattu!</h1>
+            <p className="text-sm opacity-90 mt-1">{course} · {format(new Date(date), "d.M.yyyy")}</p>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            <SavedStat label="Birdiet" value={birdies} highlight />
+            <SavedStat label="Eaglet" value={eagles} />
+            <SavedStat label="Albat" value={albatrosses} />
+            <SavedStat label="Holarit" value={holeInOnes} />
+          </div>
+
+          <div className={`rounded-3xl p-5 shadow-card ${hasNotable ? "bg-gradient-sunset text-night" : "bg-card"}`}>
+            <div className="font-display text-lg mb-1">
+              {hasNotable ? "Kerro kavereille! 🎉" : "Jaa kavereille"}
+            </div>
+            <p className={`text-sm mb-4 ${hasNotable ? "text-night/80" : "text-muted-foreground"}`}>
+              Lähetä WhatsApp-viesti tiimille {hasNotable ? "ja anna heidän juhlia kanssasi." : "ja muistuta siitä, että johdat tulostaulua."}
+            </p>
+            <Button
+              onClick={handleShare}
+              className={`w-full h-12 rounded-xl font-display ${
+                hasNotable
+                  ? "bg-night text-primary-foreground hover:bg-night/90"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              <Share2 className="w-4 h-4 mr-2" /> Jaa WhatsAppissa
+            </Button>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/app" })}
+              className="flex-1 h-12 rounded-xl"
+            >
+              Tulostauluun
+            </Button>
+            <Button
+              onClick={() => {
+                // Reset for another round
+                setStep("round");
+                setBirdies(0);
+                setEagles(0);
+                setAlbatrosses(0);
+                setHoleInOnes(0);
+                setEagleDetails([]);
+                setAlbatrossDetails([]);
+                setHioDetails([]);
+              }}
+              className="flex-1 h-12 rounded-xl font-display"
+            >
+              Uusi kierros <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ----- Details step -----
   if (step === "details") {
     return (
       <div className="pb-8">
         <h1 className="font-display text-3xl mb-2">Kerro lisää</h1>
         <p className="text-muted-foreground mb-6">Legendoille.</p>
-        <ShotDetailsList
-          title="Holarit"
-          emoji="⛳"
-          details={hioDetails}
-          onChange={setHioDetails}
-        />
-        <ShotDetailsList
-          title="Albatrossit"
-          emoji="🪶"
-          details={albatrossDetails}
-          onChange={setAlbatrossDetails}
-        />
-        <ShotDetailsList
-          title="Eaglet"
-          emoji="🦅"
-          details={eagleDetails}
-          onChange={setEagleDetails}
-        />
+        <ShotDetailsList title="Holarit" emoji="⛳" details={hioDetails} onChange={setHioDetails} />
+        <ShotDetailsList title="Albatrossit" emoji="🪶" details={albatrossDetails} onChange={setAlbatrossDetails} />
+        <ShotDetailsList title="Eaglet" emoji="🦅" details={eagleDetails} onChange={setEagleDetails} />
         <div className="flex gap-3 mt-6">
           <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setStep("round")}>
             Takaisin
@@ -169,19 +283,30 @@ function LogRound() {
     );
   }
 
+  // ----- Round step -----
   return (
     <form onSubmit={goToDetails} className="space-y-5 pb-8">
       <h1 className="font-display text-3xl mb-2">Kirjaa kierros</h1>
 
       <div>
         <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kenttä</Label>
-        <Input
-          required
-          placeholder="Esim. Helsingin Golfklubi"
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          className="h-12 text-base mt-1"
-        />
+        <div className="mt-1">
+          {activeTeam && user ? (
+            <CoursePicker
+              teamId={activeTeam.id}
+              userId={user.id}
+              value={course}
+              onChange={setCourse}
+            />
+          ) : (
+            <Input
+              placeholder="Esim. Helsingin Golfklubi"
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+              className="h-12 text-base"
+            />
+          )}
+        </div>
       </div>
 
       <div>
@@ -233,7 +358,6 @@ function LogRound() {
         )}
       </div>
 
-      {/* Birdie - the hero */}
       <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-6 shadow-card">
         <div className="text-xs uppercase tracking-widest opacity-90 font-semibold">Päätilasto</div>
         <div className="font-display text-2xl mt-1 mb-4">Birdiet</div>
@@ -307,6 +431,15 @@ function SmallCounter({
           <Plus className="w-4 h-4" strokeWidth={3} />
         </button>
       </div>
+    </div>
+  );
+}
+
+function SavedStat({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`rounded-2xl p-3 text-center shadow-card ${highlight ? "bg-accent text-night" : "bg-card"}`}>
+      <div className="font-display text-2xl tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80">{label}</div>
     </div>
   );
 }
