@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 type TabDef = {
   to: "/app" | "/app/hall-of-fame" | "/app/profile";
