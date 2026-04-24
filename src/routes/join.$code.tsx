@@ -33,10 +33,12 @@ function JoinTeam() {
     });
   }, [code]);
 
-  // Save the code so callback can pick it up after sign-in
+  // Save the code so callback can pick it up after sign-in.
+  // Use localStorage so it survives the email magic-link round-trip,
+  // which can re-open the app in a fresh browser session.
   useEffect(() => {
     if (!loading && !user && typeof window !== "undefined") {
-      sessionStorage.setItem("birdie:pendingJoin", code);
+      localStorage.setItem("birdie:pendingJoin", code);
     }
   }, [code, user, loading]);
 
