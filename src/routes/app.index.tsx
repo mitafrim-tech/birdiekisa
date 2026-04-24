@@ -128,7 +128,7 @@ function Leaderboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: idx * 0.04 }}
               >
-                <LeaderCard row={row} rank={idx + 1} />
+                <LeaderCard row={row} rank={idx + 1} leaderBirdies={rows[0]?.birdies ?? 0} />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -139,8 +139,11 @@ function Leaderboard() {
   );
 }
 
-function LeaderCard({ row, rank }: { row: LeaderRow; rank: number }) {
+function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number; leaderBirdies: number }) {
   const isLeader = rank === 1;
+  // Progress bar relative to the leader's birdie count.
+  // If the leader has 0 birdies, show 0% for everyone (avoids div/0).
+  const pct = leaderBirdies > 0 ? Math.max(2, Math.round((row.birdies / leaderBirdies) * 100)) : 0;
   return (
     <Link
       to="/app/player/$id"
@@ -174,16 +177,39 @@ function LeaderCard({ row, rank }: { row: LeaderRow; rank: number }) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-display text-lg leading-tight truncate">{row.nickname}</div>
-          <div className="text-xs opacity-75 mt-0.5 flex gap-3">
-            {row.eagles > 0 && <span>🦅 {row.eagles}</span>}
-            {row.albatrosses > 0 && <span>🪶 {row.albatrosses}</span>}
-            {row.hole_in_ones > 0 && <span>⛳ {row.hole_in_ones}</span>}
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="font-display text-lg leading-tight truncate">{row.nickname}</div>
+            <div className="flex items-baseline gap-1 shrink-0">
+              <span className="font-display text-2xl leading-none tabular-nums">{row.birdies}</span>
+              <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">birdies</span>
+            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <div className="font-display text-3xl leading-none">{row.birdies}</div>
-          <div className="text-[10px] uppercase tracking-wider opacity-75 font-semibold mt-1">birdies</div>
+          {/* Progress bar */}
+          <div
+            className={`mt-2 h-2 rounded-full overflow-hidden ${
+              isLeader ? "bg-night/20" : "bg-muted"
+            }`}
+          >
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ${
+                isLeader
+                  ? "bg-night"
+                  : rank === 2
+                  ? "bg-sky"
+                  : rank === 3
+                  ? "bg-flag"
+                  : "bg-primary/70"
+              }`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          {(row.eagles > 0 || row.albatrosses > 0 || row.hole_in_ones > 0) && (
+            <div className="text-xs opacity-75 mt-1.5 flex gap-3">
+              {row.eagles > 0 && <span>🦅 {row.eagles}</span>}
+              {row.albatrosses > 0 && <span>🪶 {row.albatrosses}</span>}
+              {row.hole_in_ones > 0 && <span>⛳ {row.hole_in_ones}</span>}
+            </div>
+          )}
         </div>
       </div>
     </Link>

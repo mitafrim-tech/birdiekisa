@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Trophy, CirclePlus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
+import { Trophy, Plus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,16 +14,14 @@ import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 
 type TabDef = {
-  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
+  to: "/app" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
   label: string;
   icon: typeof Trophy;
   exact?: boolean;
-  highlight?: boolean;
 };
 
 const TABS: TabDef[] = [
   { to: "/app", label: "Tulostaulu", icon: Trophy, exact: true },
-  { to: "/app/log", label: "Kirjaa kierros", icon: CirclePlus, highlight: true },
   { to: "/app/hall-of-fame", label: "Legendat", icon: Award },
   { to: "/app/rules", label: "Säännöt", icon: ScrollText },
   { to: "/app/profile", label: "Minä", icon: UserIcon },
@@ -111,47 +109,47 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="max-w-md mx-auto grid grid-cols-5 items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
-          {TABS.map(({ to, label, icon: Icon, exact, highlight }) => {
-            const active = exact
-              ? location.pathname === to
-              : location.pathname === to || location.pathname.startsWith(to + "/");
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {highlight && !active && (
-                  <span className="absolute top-1.5 right-[28%] w-1.5 h-1.5 rounded-full bg-flag animate-pulse" />
-                )}
-                <div
+        <div className="relative max-w-md mx-auto px-2 pb-[env(safe-area-inset-bottom)]">
+          {/* Floating center FAB for "Kirjaa kierros" */}
+          <Link
+            to="/app/log"
+            aria-label="Kirjaa kierros"
+            className="absolute left-1/2 -translate-x-1/2 -top-7 z-10 w-16 h-16 rounded-full bg-flag text-primary-foreground shadow-bold flex items-center justify-center transition-transform active:scale-95 ring-4 ring-background"
+          >
+            <Plus className="w-8 h-8" strokeWidth={3} />
+          </Link>
+          <div className="grid grid-cols-[1fr_1fr_5rem_1fr_1fr] items-stretch">
+            {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
+              const active = exact
+                ? location.pathname === to
+                : location.pathname === to || location.pathname.startsWith(to + "/");
+              // Skip middle column (reserved for FAB): tabs occupy cols 1,2,4,5
+              const style = { gridColumn: idx < 2 ? idx + 1 : idx + 2 };
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  style={style}
                   className={cn(
-                    "flex items-center justify-center transition-all",
-                    "w-11 h-11 rounded-2xl",
-                    active && "bg-primary text-primary-foreground shadow-glow",
-                    !active && highlight && "text-flag",
+                    "flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
+                    active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon
-                    className={cn(highlight ? "w-7 h-7" : "w-5 h-5")}
-                    strokeWidth={highlight ? 2.25 : 2.5}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] font-semibold uppercase tracking-wider",
-                    !active && highlight && "text-flag",
-                  )}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
+                  <div
+                    className={cn(
+                      "flex items-center justify-center transition-all w-10 h-10 rounded-2xl",
+                      active && "bg-primary text-primary-foreground shadow-glow",
+                    )}
+                  >
+                    <Icon className="w-5 h-5" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </div>

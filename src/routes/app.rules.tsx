@@ -117,7 +117,7 @@ function RulesPage() {
               <p className="text-muted-foreground">
                 {isAdmin
                   ? "Ei vielä sääntöjä. Kirjoita ne alta, niin tiimi näkee ne tässä."
-                  : "Ylläpitäjä ei ole vielä lisännyt sääntöjä."}
+                  : "Tiimisi ei ole vielä kirjannut sääntöjä."}
               </p>
             </div>
           )}

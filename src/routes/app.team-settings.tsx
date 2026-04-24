@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
@@ -30,6 +30,8 @@ function TeamSettings() {
   const [courses, setCourses] = useState<{ id: string; name: string; is_official: boolean }[]>([]);
   const [newCourse, setNewCourse] = useState("");
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingCourseName, setEditingCourseName] = useState("");
 
   const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
   useEffect(() => {
@@ -187,6 +189,40 @@ function TeamSettings() {
     setCourses((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const startEditCourse = (c: { id: string; name: string }) => {
+    setEditingCourseId(c.id);
+    setEditingCourseName(c.name);
+  };
+
+  const cancelEditCourse = () => {
+    setEditingCourseId(null);
+    setEditingCourseName("");
+  };
+
+  const saveEditCourse = async () => {
+    if (!editingCourseId) return;
+    const trimmed = editingCourseName.trim();
+    if (!trimmed) {
+      toast.error("Nimi ei voi olla tyhjä");
+      return;
+    }
+    const { error } = await supabase
+      .from("team_courses")
+      .update({ name: trimmed })
+      .eq("id", editingCourseId);
+    if (error) {
+      toast.error("Nimen muutos epäonnistui");
+      return;
+    }
+    setCourses((prev) =>
+      prev
+        .map((x) => (x.id === editingCourseId ? { ...x, name: trimmed } : x))
+        .sort((a, b) => Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name)),
+    );
+    cancelEditCourse();
+    toast.success("Kentän nimi päivitetty");
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
@@ -292,28 +328,74 @@ function TeamSettings() {
           <p className="text-xs text-muted-foreground text-center py-4">Ei vielä kenttiä.</p>
         ) : (
           <ul className="divide-y">
-            {courses.map((c) => (
-              <li key={c.id} className="flex items-center gap-2 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => toggleOfficial(c)}
-                  title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
-                  className="shrink-0"
-                >
-                  <Star
-                    className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
-                  />
-                </button>
-                <span className="flex-1 text-sm truncate">{c.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removeCourse(c.id)}
-                  className="text-muted-foreground hover:text-destructive shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </li>
-            ))}
+            {courses.map((c) => {
+              const isEditing = editingCourseId === c.id;
+              return (
+                <li key={c.id} className="flex items-center gap-2 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleOfficial(c)}
+                    title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
+                    className="shrink-0"
+                    disabled={isEditing}
+                  >
+                    <Star
+                      className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
+                    />
+                  </button>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        value={editingCourseName}
+                        onChange={(e) => setEditingCourseName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); saveEditCourse(); }
+                          if (e.key === "Escape") { e.preventDefault(); cancelEditCourse(); }
+                        }}
+                        autoFocus
+                        className="h-9 flex-1 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={saveEditCourse}
+                        className="text-primary hover:opacity-70 shrink-0"
+                        aria-label="Tallenna"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditCourse}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Peruuta"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm truncate">{c.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => startEditCourse(c)}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Muokkaa"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeCourse(c.id)}
+                        className="text-muted-foreground hover:text-destructive shrink-0"
+                        aria-label="Poista"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
