@@ -74,6 +74,26 @@ function LogRound() {
       toast.error("Reikien määrän täytyy olla vähintään 1");
       return;
     }
+    // Warn if the round is outside the team's configured season window.
+    // Rounds outside the season are still saved, but won't appear on the
+    // leaderboard until the admin extends the season.
+    if (activeTeam) {
+      const outsideSeason =
+        (activeTeam.season_start && date < activeTeam.season_start) ||
+        (activeTeam.season_end && date > activeTeam.season_end);
+      if (outsideSeason) {
+        const start = activeTeam.season_start ?? "?";
+        const end = activeTeam.season_end ?? "?";
+        const ok =
+          typeof window === "undefined"
+            ? true
+            : window.confirm(
+                `Päivämäärä ${date} on kauden ulkopuolella (${start} – ${end}). ` +
+                  `Kierros tallennetaan, mutta se ei näy tulostaulussa ennen kuin ylläpitäjä päivittää kauden. Jatketaanko?`,
+              );
+        if (!ok) return;
+      }
+    }
     if (eagles + albatrosses + holeInOnes === 0) {
       submit();
       return;
