@@ -56,13 +56,14 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     if (!kind) return;
     const cfg = CONFIG[kind];
 
-    // Initial burst
+    // Initial burst — keep confetti below the modal (modal is z-[110])
     confetti({
       particleCount: cfg.particles,
       spread: 120,
       startVelocity: 55,
       origin: { y: 0.45 },
       colors: ["#fbbf24", "#10b981", "#ec4899", "#3b82f6", "#f43f5e"],
+      zIndex: 90,
     });
 
     // For HIO + albatross: rolling bursts
@@ -79,6 +80,7 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
           spread: 70,
           origin: { x: 0, y: 0.7 },
           colors: ["#fbbf24", "#f43f5e", "#10b981"],
+          zIndex: 90,
         });
         confetti({
           particleCount: 80,
@@ -86,6 +88,7 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
           spread: 70,
           origin: { x: 1, y: 0.7 },
           colors: ["#fbbf24", "#f43f5e", "#10b981"],
+          zIndex: 90,
         });
       }, 350);
       return () => clearInterval(interval);
@@ -99,7 +102,7 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-night/85 backdrop-blur-md"
+          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/85 backdrop-blur-md"
           onClick={onClose}
         >
           <motion.div
@@ -107,7 +110,7 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", damping: 14, stiffness: 180 }}
-            className={`relative max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden`}
+            className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Animated background trophy */}

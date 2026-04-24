@@ -25,7 +25,7 @@ interface ChampRow {
   event_date: string | null;
   competition: string | null;
   is_manual: boolean | null;
-  profiles: { nickname: string | null; avatar_url: string | null } | null;
+  profiles?: { nickname: string | null; avatar_url: string | null } | null;
 }
 
 interface ShotRow {
@@ -36,7 +36,7 @@ interface ShotRow {
   event_name: string | null;
   played_on: string;
   user_id: string;
-  profiles: { nickname: string | null; avatar_url: string | null } | null;
+  profiles?: { nickname: string | null; avatar_url: string | null } | null;
 }
 
 const SHOT_LABELS: Record<ShotRow["shot_type"], { label: string; emoji: string; color: string }> = {
@@ -58,20 +58,51 @@ function HallOfFame() {
     if (!activeTeam) return;
     setLoading(true);
     (async () => {
-      const { data: champData } = await supabase
-        .from("champions")
-        .select("id, user_id, season_start, season_end, birdie_count, season_label, category, course_name, hole_number, event_date, competition, is_manual, profiles:profiles!champions_user_id_fkey(nickname, avatar_url)")
-        .eq("team_id", activeTeam.id)
-        .order("season_end", { ascending: false });
+      // Fetch champions and notable shots; profiles must be fetched separately
+      // because there is no FK from these tables to public.profiles (the FK
+      // points to auth.users), so PostgREST embeds return nothing.
+      const [{ data: champData }, { data: shotData }] = await Promise.all([
+        supabase
+          .from("champions")
+          .select("id, user_id, season_start, season_end, birdie_count, season_label, category, course_name, hole_number, event_date, competition, is_manual")
+          .eq("team_id", activeTeam.id)
+          .order("season_end", { ascending: false }),
+        supabase
+          .from("notable_shots")
+          .select("id, shot_type, course_name, hole_number, event_name, played_on, user_id")
+          .eq("team_id", activeTeam.id)
+          .order("played_on", { ascending: false }),
+      ]);
 
-      const { data: shotData } = await supabase
-        .from("notable_shots")
-        .select("id, shot_type, course_name, hole_number, event_name, played_on, user_id, profiles:profiles!notable_shots_user_id_fkey(nickname, avatar_url)")
-        .eq("team_id", activeTeam.id)
-        .order("played_on", { ascending: false });
+      const userIds = Array.from(
+        new Set([
+          ...((champData ?? []).map((c) => c.user_id)),
+          ...((shotData ?? []).map((s) => s.user_id)),
+        ]),
+      );
 
-      setChamps((champData as any) ?? []);
-      setShots((shotData as any) ?? []);
+      let profileMap = new Map<string, { nickname: string | null; avatar_url: string | null }>();
+      if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, nickname, avatar_url")
+          .in("id", userIds);
+        (profileData ?? []).forEach((p) => {
+          profileMap.set(p.id, { nickname: p.nickname, avatar_url: p.avatar_url });
+        });
+      }
+
+      const enrichedChamps: ChampRow[] = (champData ?? []).map((c) => ({
+        ...c,
+        profiles: profileMap.get(c.user_id) ?? null,
+      }));
+      const enrichedShots: ShotRow[] = (shotData ?? []).map((s) => ({
+        ...s,
+        profiles: profileMap.get(s.user_id) ?? null,
+      }));
+
+      setChamps(enrichedChamps);
+      setShots(enrichedShots);
       setLoading(false);
     })();
   }, [activeTeam]);
