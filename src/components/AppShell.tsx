@@ -109,54 +109,58 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="relative max-w-md mx-auto px-2 pt-2 pb-[env(safe-area-inset-bottom)]">
-          {/* Floating center FAB for "Lisää tulos" */}
-          <Link
-            to="/app/log"
-            aria-label="Lisää tulos"
-            className="absolute left-1/2 -translate-x-1/2 -top-8 z-10 flex flex-col items-center group"
-          >
-            <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-bold flex items-center justify-center transition-transform group-active:scale-95 ring-4 ring-background">
-              <Plus className="w-8 h-8" strokeWidth={3} />
-            </div>
-            <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              Lisää tulos
-            </span>
-          </Link>
-          <div className="grid grid-cols-[1fr_1fr_5rem_1fr_1fr] items-stretch pt-1">
-            {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
-              const active = exact
-                ? location.pathname === to
-                : location.pathname === to || location.pathname.startsWith(to + "/");
-              // Skip middle column (reserved for FAB): tabs occupy cols 1,2,4,5
-              const style = { gridColumn: idx < 2 ? idx + 1 : idx + 2 };
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  style={style}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
-                    active ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex items-center justify-center transition-all w-10 h-10 rounded-2xl",
-                      active && "bg-primary text-primary-foreground shadow-glow",
-                    )}
-                  >
-                    <Icon className="w-5 h-5" strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider">
-                    {label}
-                  </span>
-                </Link>
-              );
-            })}
+        <div className="max-w-md mx-auto px-2 pb-[env(safe-area-inset-bottom)]">
+          <div className="grid grid-cols-5 items-stretch">
+            {TABS.slice(0, 2).map(({ to, label, icon: Icon, exact }) => (
+              <NavTab key={to} to={to} label={label} Icon={Icon} exact={exact} pathname={location.pathname} />
+            ))}
+            {/* Center primary action */}
+            <Link
+              to="/app/log"
+              aria-label="Lisää tulos"
+              className="flex flex-col items-center justify-center gap-1 py-2 group"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow transition-transform group-active:scale-95">
+                <Plus className="w-6 h-6" strokeWidth={3} />
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                Lisää
+              </span>
+            </Link>
+            {TABS.slice(2).map(({ to, label, icon: Icon, exact }) => (
+              <NavTab key={to} to={to} label={label} Icon={Icon} exact={exact} pathname={location.pathname} />
+            ))}
           </div>
         </div>
       </nav>
     </div>
+  );
+}
+
+function NavTab({
+  to,
+  label,
+  Icon,
+  exact,
+  pathname,
+}: {
+  to: TabDef["to"];
+  label: string;
+  Icon: TabDef["icon"];
+  exact?: boolean;
+  pathname: string;
+}) {
+  const active = exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
+        active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <Icon className="w-5 h-5" strokeWidth={2.5} />
+      <span className="text-[10px] font-semibold uppercase tracking-wider">{label}</span>
+    </Link>
   );
 }
