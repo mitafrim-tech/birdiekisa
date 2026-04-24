@@ -118,20 +118,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <Plus className="w-8 h-8" strokeWidth={3} />
           </Link>
-          <div className="grid grid-cols-5 items-stretch">
+          <div className="grid grid-cols-[1fr_1fr_5rem_1fr_1fr] items-stretch">
             {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
               const active = exact
                 ? location.pathname === to
                 : location.pathname === to || location.pathname.startsWith(to + "/");
-              // Insert empty slot in the middle (index 2) to make room for the FAB
-              const colClass = idx < 2 ? "" : "col-start-" + (idx + 2);
+              // Skip middle column (reserved for FAB): tabs occupy cols 1,2,4,5
+              const style = { gridColumn: idx < 2 ? idx + 1 : idx + 2 };
               return (
                 <Link
                   key={to}
                   to={to}
+                  style={style}
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
-                    colClass,
                     active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
