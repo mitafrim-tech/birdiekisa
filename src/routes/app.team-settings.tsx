@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
@@ -33,10 +33,11 @@ function TeamSettings() {
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [editingCourseName, setEditingCourseName] = useState("");
 
-  const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
   useEffect(() => {
-    if (notAllowed) navigate({ to: "/app" });
-  }, [notAllowed, navigate]);
+    if (activeTeam && user && user.id !== activeTeam.admin_id) {
+      navigate({ to: "/app" });
+    }
+  }, [activeTeam, user, navigate]);
 
   useEffect(() => {
     if (!activeTeam) return;
@@ -96,6 +97,15 @@ function TeamSettings() {
     } catch {
       toast.error("Kopiointi epäonnistui");
     }
+  };
+
+  const shareInviteWhatsApp = () => {
+    const message =
+      `Hei! Liity tiimiimme *${activeTeam.name}* Birdiekisassa 🏌️‍♂️⛳️\n\n` +
+      `Kirjataan birdiet, eaglet ja holarit yhdessä koko kausi.\n\n` +
+      `Liity tästä: ${inviteUrl}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
   };
 
   const archiveSeason = async () => {
@@ -239,6 +249,12 @@ function TeamSettings() {
             <Copy className="w-4 h-4 mr-1" /> Kopioi
           </Button>
         </div>
+        <Button
+          onClick={shareInviteWhatsApp}
+          className="w-full mt-3 h-12 rounded-xl font-display bg-[#25D366] hover:bg-[#20bd5a] text-white"
+        >
+          <Share2 className="w-4 h-4 mr-2" /> Jaa WhatsAppiin
+        </Button>
       </div>
 
       <form onSubmit={save} className="space-y-4 bg-card rounded-3xl p-5 shadow-card">
