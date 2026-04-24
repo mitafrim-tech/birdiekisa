@@ -70,6 +70,11 @@ function LandingPage() {
             <img
               src={logoBirdie}
               alt="Birdie logo"
+              width={48}
+              height={48}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="w-12 h-12 object-contain"
             />
           </div>
