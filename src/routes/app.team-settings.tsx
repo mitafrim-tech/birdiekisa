@@ -1,5 +1,5 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2 } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2, Users, UserMinus, ShieldCheck, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { toUserMessage } from "@/lib/errors";
@@ -34,6 +34,29 @@ function TeamSettings() {
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [editingCourseName, setEditingCourseName] = useState("");
   const [joinCode, setJoinCode] = useState<string | null>(null);
+
+  type Member = {
+    user_id: string;
+    nickname: string | null;
+    avatar_url: string | null;
+    is_admin: boolean;
+    joined_at: string;
+  };
+  const [members, setMembers] = useState<Member[]>([]);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [editingMemberNickname, setEditingMemberNickname] = useState("");
+
+  const loadMembers = useCallback(async () => {
+    if (!activeTeam) return;
+    const { data, error } = await supabase.rpc("list_team_members", { _team_id: activeTeam.id });
+    if (!error && Array.isArray(data)) {
+      setMembers(data as Member[]);
+    }
+  }, [activeTeam]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   useEffect(() => {
     if (activeTeam && user && user.id !== activeTeam.admin_id) {
@@ -247,6 +270,66 @@ function TeamSettings() {
     toast.success("Kentän nimi päivitetty");
   };
 
+  const startEditMember = (m: { user_id: string; nickname: string | null }) => {
+    setEditingMemberId(m.user_id);
+    setEditingMemberNickname(m.nickname ?? "");
+  };
+
+  const cancelEditMember = () => {
+    setEditingMemberId(null);
+    setEditingMemberNickname("");
+  };
+
+  const saveEditMember = async () => {
+    if (!editingMemberId) return;
+    const trimmed = editingMemberNickname.trim();
+    if (!trimmed) {
+      toast.error("Pelaajanimi ei voi olla tyhjä");
+      return;
+    }
+    const { error } = await supabase.rpc("admin_update_member_nickname", {
+      _team_id: activeTeam.id,
+      _user_id: editingMemberId,
+      _nickname: trimmed,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Nimen päivitys epäonnistui"));
+      return;
+    }
+    setMembers((prev) => prev.map((m) => (m.user_id === editingMemberId ? { ...m, nickname: trimmed } : m)));
+    cancelEditMember();
+    toast.success("Pelaajanimi päivitetty");
+  };
+
+  const removeMember = async (m: Member) => {
+    if (!confirm(`Poistetaanko ${m.nickname ?? "pelaaja"} tiimistä?`)) return;
+    const { error } = await supabase.rpc("admin_remove_team_member", {
+      _team_id: activeTeam.id,
+      _user_id: m.user_id,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Poisto epäonnistui"));
+      return;
+    }
+    setMembers((prev) => prev.filter((x) => x.user_id !== m.user_id));
+    toast.success("Pelaaja poistettu");
+  };
+
+  const transferAdmin = async (m: Member) => {
+    if (!confirm(`Siirretäänkö ylläpito ${m.nickname ?? "tälle pelaajalle"}? Menetät ylläpitäjän oikeudet.`)) return;
+    const { error } = await supabase.rpc("transfer_team_admin", {
+      _team_id: activeTeam.id,
+      _new_admin_id: m.user_id,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Siirto epäonnistui"));
+      return;
+    }
+    toast.success("Ylläpitäjä vaihdettu");
+    await refresh();
+    navigate({ to: "/app" });
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
@@ -271,6 +354,103 @@ function TeamSettings() {
         </Button>
       </div>
 
+      {/* Members management */}
+      <div className="bg-card rounded-3xl p-5 shadow-card">
+        <div className="flex items-center gap-2 mb-1">
+          <Users className="w-5 h-5" />
+          <h2 className="font-display text-lg">Tiimin jäsenet</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          Hallinnoi jäseniä: muokkaa pelaajanimeä, poista tiimistä tai siirrä ylläpitäjän rooli.
+        </p>
+        {members.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Ladataan...</p>
+        ) : (
+          <ul className="divide-y">
+            {members.map((m) => {
+              const isMe = m.user_id === user?.id;
+              const isEditing = editingMemberId === m.user_id;
+              return (
+                <li key={m.user_id} className="flex items-center gap-3 py-2.5">
+                  <div className="w-9 h-9 rounded-full bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                    {m.avatar_url ? (
+                      <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        value={editingMemberNickname}
+                        onChange={(e) => setEditingMemberNickname(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); saveEditMember(); }
+                          if (e.key === "Escape") { e.preventDefault(); cancelEditMember(); }
+                        }}
+                        autoFocus
+                        maxLength={30}
+                        className="h-9 flex-1 text-sm"
+                      />
+                      <button type="button" onClick={saveEditMember} className="text-primary hover:opacity-70 shrink-0" aria-label="Tallenna">
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button type="button" onClick={cancelEditMember} className="text-muted-foreground hover:text-foreground shrink-0" aria-label="Peruuta">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm truncate flex items-center gap-2">
+                          <span className="truncate">{m.nickname ?? "(nimetön)"}</span>
+                          {isMe && <span className="text-[10px] text-muted-foreground">(sinä)</span>}
+                        </div>
+                        {m.is_admin && (
+                          <div className="text-[10px] uppercase tracking-wider text-accent-foreground bg-accent inline-block px-1.5 py-0.5 rounded font-semibold mt-0.5">
+                            Ylläpitäjä
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => startEditMember(m)}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Muokkaa nimeä"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      {!m.is_admin && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => transferAdmin(m)}
+                            className="text-muted-foreground hover:text-flag shrink-0"
+                            aria-label="Siirrä ylläpito"
+                            title="Siirrä ylläpito"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(m)}
+                            className="text-muted-foreground hover:text-destructive shrink-0"
+                            aria-label="Poista tiimistä"
+                            title="Poista tiimistä"
+                          >
+                            <UserMinus className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       <form onSubmit={save} className="space-y-4 bg-card rounded-3xl p-5 shadow-card">
         <div className="flex flex-col items-center">
           <button
@@ -291,7 +471,6 @@ function TeamSettings() {
             ref={fileRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={(e) => handleLogo(e.target.files?.[0] ?? null)}
           />

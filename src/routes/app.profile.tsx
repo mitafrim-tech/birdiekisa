@@ -82,7 +82,6 @@ function ProfilePage() {
           ref={fileRef}
           type="file"
           accept="image/*"
-          capture="user"
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
         />
