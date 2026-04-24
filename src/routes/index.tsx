@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trophy, Flag, Sparkles } from "lucide-react";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,7 +45,7 @@ function LandingPage() {
     });
     setSending(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(toUserMessage(error, "Linkin lähetys epäonnistui"));
     } else {
       setSent(true);
       toast.success("Tarkista sähköpostisi — taikalinkki on lähetetty");
