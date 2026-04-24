@@ -18,33 +18,38 @@ function pluralBirdie(n: number) {
 
 export function buildWhatsAppMessage(s: RoundSummary): string {
   const parts: string[] = [];
-  const big = s.hole_in_ones + s.albatrosses + s.eagles;
 
+  // Headline: lead with the rarest achievement
   if (s.hole_in_ones > 0) {
     parts.push(`🎉⛳ HOLARI! ${s.player_nickname} teki holarin @ ${s.course_name}!`);
   } else if (s.albatrosses > 0) {
     parts.push(`🪶 ALBATROSS! ${s.player_nickname} kirjasi albatrossin @ ${s.course_name}!`);
   } else if (s.eagles > 0) {
-    parts.push(`🦅 EAGLE! ${s.player_nickname} pamautti eaglen @ ${s.course_name}.`);
+    parts.push(`🦅 EAGLE! ${s.player_nickname} pamautti eaglen @ ${s.course_name}!`);
   } else if (s.birdies > 0) {
-    parts.push(`🐦 ${s.player_nickname} kirjasi ${s.birdies} ${pluralBirdie(s.birdies)} @ ${s.course_name}.`);
+    parts.push(
+      `🐦 ${s.player_nickname} kirjasi ${s.birdies} ${pluralBirdie(s.birdies)} @ ${s.course_name}.`,
+    );
   } else {
     parts.push(`⛳ ${s.player_nickname} pelasi kierroksen @ ${s.course_name}.`);
   }
 
-  // Stat line
+  // Extra stats line — show everything that happened, in rarity order
   const stats: string[] = [];
-  if (s.birdies > 0) stats.push(`${s.birdies} birdie${s.birdies === 1 ? "" : "ä"}`);
-  if (s.eagles > 0) stats.push(`${s.eagles} eagle${s.eagles === 1 ? "" : "a"}`);
-  if (s.albatrosses > 0) stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"}`);
-  if (s.hole_in_ones > 0) stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"}`);
-  if (stats.length > 0 && big > 0 && s.birdies > 0) {
-    parts.push(`Lisäksi: ${stats.filter(x => !x.includes(big > 0 ? "" : "")).join(", ")}`);
-  } else if (stats.length > 1) {
+  if (s.hole_in_ones > 0) stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
+  if (s.albatrosses > 0) stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
+  if (s.eagles > 0) stats.push(`${s.eagles} eagle${s.eagles === 1 ? "" : "a"} 🦅`);
+  if (s.birdies > 0) stats.push(`${s.birdies} ${pluralBirdie(s.birdies)} 🐦`);
+
+  if (stats.length > 1) {
     parts.push(`Yhteensä: ${stats.join(", ")}.`);
   }
 
-  parts.push(`\n🏆 ${s.team_name} – tulostaulu: ${s.app_url}`);
+  if (s.app_url) {
+    parts.push(`\n🏆 ${s.team_name} – tulostaulu: ${s.app_url}`);
+  } else {
+    parts.push(`\n🏆 ${s.team_name}`);
+  }
   return parts.join("\n");
 }
 
