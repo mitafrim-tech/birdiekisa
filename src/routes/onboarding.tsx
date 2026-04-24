@@ -93,11 +93,10 @@ function Onboarding() {
               ref={fileRef}
               type="file"
               accept="image/*"
-              capture="user"
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
             />
-            <p className="text-xs text-muted-foreground">Ota selfie tai lisää kuva</p>
+            <p className="text-xs text-muted-foreground">Lisää kuva tai ota selfie</p>
           </div>
 
           <div>
