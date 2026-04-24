@@ -352,6 +352,7 @@ export type Database = {
           name: string
         }[]
       }
+      get_team_join_code: { Args: { _team_id: string }; Returns: string }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
