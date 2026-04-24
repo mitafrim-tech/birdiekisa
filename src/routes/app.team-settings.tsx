@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
@@ -30,6 +30,8 @@ function TeamSettings() {
   const [courses, setCourses] = useState<{ id: string; name: string; is_official: boolean }[]>([]);
   const [newCourse, setNewCourse] = useState("");
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingCourseName, setEditingCourseName] = useState("");
 
   const notAllowed = !activeTeam || (user && user.id !== activeTeam.admin_id);
   useEffect(() => {
@@ -185,6 +187,40 @@ function TeamSettings() {
       return;
     }
     setCourses((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const startEditCourse = (c: { id: string; name: string }) => {
+    setEditingCourseId(c.id);
+    setEditingCourseName(c.name);
+  };
+
+  const cancelEditCourse = () => {
+    setEditingCourseId(null);
+    setEditingCourseName("");
+  };
+
+  const saveEditCourse = async () => {
+    if (!editingCourseId) return;
+    const trimmed = editingCourseName.trim();
+    if (!trimmed) {
+      toast.error("Nimi ei voi olla tyhjä");
+      return;
+    }
+    const { error } = await supabase
+      .from("team_courses")
+      .update({ name: trimmed })
+      .eq("id", editingCourseId);
+    if (error) {
+      toast.error("Nimen muutos epäonnistui");
+      return;
+    }
+    setCourses((prev) =>
+      prev
+        .map((x) => (x.id === editingCourseId ? { ...x, name: trimmed } : x))
+        .sort((a, b) => Number(b.is_official) - Number(a.is_official) || a.name.localeCompare(b.name)),
+    );
+    cancelEditCourse();
+    toast.success("Kentän nimi päivitetty");
   };
 
   return (
