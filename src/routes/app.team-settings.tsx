@@ -35,6 +35,29 @@ function TeamSettings() {
   const [editingCourseName, setEditingCourseName] = useState("");
   const [joinCode, setJoinCode] = useState<string | null>(null);
 
+  type Member = {
+    user_id: string;
+    nickname: string | null;
+    avatar_url: string | null;
+    is_admin: boolean;
+    joined_at: string;
+  };
+  const [members, setMembers] = useState<Member[]>([]);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [editingMemberNickname, setEditingMemberNickname] = useState("");
+
+  const loadMembers = useCallback(async () => {
+    if (!activeTeam) return;
+    const { data, error } = await supabase.rpc("list_team_members", { _team_id: activeTeam.id });
+    if (!error && Array.isArray(data)) {
+      setMembers(data as Member[]);
+    }
+  }, [activeTeam]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
+
   useEffect(() => {
     if (activeTeam && user && user.id !== activeTeam.admin_id) {
       navigate({ to: "/app" });
