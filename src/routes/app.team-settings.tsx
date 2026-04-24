@@ -291,7 +291,6 @@ function TeamSettings() {
             ref={fileRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={(e) => handleLogo(e.target.files?.[0] ?? null)}
           />
