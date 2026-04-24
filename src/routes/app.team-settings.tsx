@@ -270,6 +270,66 @@ function TeamSettings() {
     toast.success("Kentän nimi päivitetty");
   };
 
+  const startEditMember = (m: { user_id: string; nickname: string | null }) => {
+    setEditingMemberId(m.user_id);
+    setEditingMemberNickname(m.nickname ?? "");
+  };
+
+  const cancelEditMember = () => {
+    setEditingMemberId(null);
+    setEditingMemberNickname("");
+  };
+
+  const saveEditMember = async () => {
+    if (!editingMemberId) return;
+    const trimmed = editingMemberNickname.trim();
+    if (!trimmed) {
+      toast.error("Pelaajanimi ei voi olla tyhjä");
+      return;
+    }
+    const { error } = await supabase.rpc("admin_update_member_nickname", {
+      _team_id: activeTeam.id,
+      _user_id: editingMemberId,
+      _nickname: trimmed,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Nimen päivitys epäonnistui"));
+      return;
+    }
+    setMembers((prev) => prev.map((m) => (m.user_id === editingMemberId ? { ...m, nickname: trimmed } : m)));
+    cancelEditMember();
+    toast.success("Pelaajanimi päivitetty");
+  };
+
+  const removeMember = async (m: Member) => {
+    if (!confirm(`Poistetaanko ${m.nickname ?? "pelaaja"} tiimistä?`)) return;
+    const { error } = await supabase.rpc("admin_remove_team_member", {
+      _team_id: activeTeam.id,
+      _user_id: m.user_id,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Poisto epäonnistui"));
+      return;
+    }
+    setMembers((prev) => prev.filter((x) => x.user_id !== m.user_id));
+    toast.success("Pelaaja poistettu");
+  };
+
+  const transferAdmin = async (m: Member) => {
+    if (!confirm(`Siirretäänkö ylläpito ${m.nickname ?? "tälle pelaajalle"}? Menetät ylläpitäjän oikeudet.`)) return;
+    const { error } = await supabase.rpc("transfer_team_admin", {
+      _team_id: activeTeam.id,
+      _new_admin_id: m.user_id,
+    });
+    if (error) {
+      toast.error(toUserMessage(error, "Siirto epäonnistui"));
+      return;
+    }
+    toast.success("Ylläpitäjä vaihdettu");
+    await refresh();
+    navigate({ to: "/app" });
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
