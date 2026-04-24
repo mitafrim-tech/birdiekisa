@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
 import { Camera, Flag, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/app/teams")({
   component: TeamsPage,
@@ -55,7 +56,7 @@ function TeamsPage() {
       toast.success(`Tiimi ${name} luotu`);
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Tiimin luonti epäonnistui");
+      toast.error(toUserMessage(err, "Tiimin luonti epäonnistui"));
     } finally {
       setCreating(false);
     }
@@ -67,7 +68,7 @@ function TeamsPage() {
     if (!code) return;
     const { data, error } = await supabase.rpc("join_team_by_code", { _code: code });
     if (error) {
-      toast.error(error.message);
+      toast.error(toUserMessage(error, "Liittyminen epäonnistui"));
       return;
     }
     await refresh();
