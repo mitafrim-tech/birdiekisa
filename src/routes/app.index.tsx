@@ -84,7 +84,8 @@ function Leaderboard() {
     loadLeaderboard();
   }, [activeTeam, loadLeaderboard]);
 
-  // Realtime: refresh when teammates join/leave or log new rounds
+  // Realtime: refresh when teammates join/leave, log new rounds, edit their
+  // profile (nickname/avatar), or record notable shots.
   useEffect(() => {
     if (!activeTeam) return;
     const channel = supabase
@@ -97,6 +98,18 @@ function Leaderboard() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rounds", filter: `team_id=eq.${activeTeam.id}` },
+        () => loadLeaderboard(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notable_shots", filter: `team_id=eq.${activeTeam.id}` },
+        () => loadLeaderboard(),
+      )
+      // Profiles aren't team-scoped, so no filter — RLS still limits the
+      // payloads we receive to teammates we're allowed to see.
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
         () => loadLeaderboard(),
       )
       .subscribe();
@@ -177,48 +190,54 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
   // If the leader has 0 birdies, show 0% for everyone (avoids div/0).
   const pct = leaderBirdies > 0 ? Math.max(2, Math.round((row.birdies / leaderBirdies) * 100)) : 0;
   return (
-    <Link
-      to="/app/player/$id"
-      params={{ id: row.user_id }}
-      className="block"
-    >
+    <Link to="/app/player/$id" params={{ id: row.user_id }} className="block">
       <div
-        className={`relative rounded-2xl p-4 flex items-center gap-4 shadow-card transition-transform active:scale-[0.98] ${
+        className={`rounded-2xl pl-3 pr-4 py-3 flex items-center gap-3 shadow-card transition-transform active:scale-[0.98] ${
           isLeader ? "bg-gradient-sunset text-night" : "bg-card"
         }`}
       >
+        {/* Slim vertical numeral — flush in the card, no badge */}
         <div
-          className={`absolute -left-1 -top-2 w-8 h-8 rounded-xl flex items-center justify-center font-display text-sm shadow-bold ${
+          className={`font-display tabular-nums leading-none w-8 text-center text-3xl shrink-0 ${
             isLeader
-              ? "bg-night text-accent"
+              ? "text-night"
               : rank === 2
-              ? "bg-sky text-night"
+              ? "text-foreground/80"
               : rank === 3
-              ? "bg-flag text-primary-foreground"
-              : "bg-secondary text-secondary-foreground"
+              ? "text-foreground/70"
+              : "text-muted-foreground/60"
           }`}
+          aria-label={`Rank ${rank}`}
         >
           {rank}
         </div>
-        {isLeader && <Crown className="absolute top-2 right-3 w-5 h-5 text-night/70" />}
+
         {row.avatar_url ? (
-          <img src={row.avatar_url} alt={row.nickname} className="w-14 h-14 rounded-2xl object-cover ml-3" />
+          <img
+            src={row.avatar_url}
+            alt={row.nickname}
+            className="w-12 h-12 rounded-2xl object-cover shrink-0"
+          />
         ) : (
-          <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center ml-3">
-            <Flag className="w-7 h-7 text-primary" strokeWidth={2.5} />
+          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
+            <Flag className="w-6 h-6 text-primary" strokeWidth={2.5} />
           </div>
         )}
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <div className="font-display text-lg leading-tight truncate">{row.nickname}</div>
-            <div className="flex items-baseline gap-1 shrink-0">
+            {/* Birdie counter — fixed-width container fits 3-digit numbers */}
+            <div className="flex items-baseline gap-1 shrink-0 min-w-[68px] justify-end">
               <span className="font-display text-2xl leading-none tabular-nums">{row.birdies}</span>
-              <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">birdies</span>
+              <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">
+                birdies
+              </span>
             </div>
           </div>
           {/* Progress bar */}
           <div
-            className={`mt-2 h-2 rounded-full overflow-hidden ${
+            className={`mt-2 h-1.5 rounded-full overflow-hidden ${
               isLeader ? "bg-night/20" : "bg-muted"
             }`}
           >
