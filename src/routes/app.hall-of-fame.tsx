@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
-import { Award, Crown, Plus } from "lucide-react";
+import { Award, Crown, Plus, Feather, Flag, Bird } from "lucide-react";
 import { format } from "date-fns";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -39,10 +39,13 @@ interface ShotRow {
   profiles?: { nickname: string | null; avatar_url: string | null } | null;
 }
 
-const SHOT_LABELS: Record<ShotRow["shot_type"], { label: string; emoji: string; color: string }> = {
-  hole_in_one: { label: "Holari", emoji: "⛳", color: "bg-flag text-primary-foreground" },
-  albatross: { label: "Albatross", emoji: "🪶", color: "bg-sky text-night" },
-  eagle: { label: "Eagle", emoji: "🦅", color: "bg-accent text-night" },
+const SHOT_LABELS: Record<
+  ShotRow["shot_type"],
+  { label: string; Icon: typeof Flag; color: string }
+> = {
+  hole_in_one: { label: "Holari", Icon: Flag, color: "bg-flag text-primary-foreground" },
+  albatross: { label: "Albatross", Icon: Feather, color: "bg-sky text-night" },
+  eagle: { label: "Eagle", Icon: Bird, color: "bg-accent text-night" },
 };
 
 function HallOfFame() {
@@ -110,16 +113,22 @@ function HallOfFame() {
   return (
     <div className="space-y-6 pb-8">
       <div className="rounded-3xl bg-gradient-sunset p-6 text-night shadow-card relative overflow-hidden">
-        <Award className="absolute -right-4 -top-4 w-32 h-32 text-night/10" />
-        <div className="relative flex items-end justify-between gap-4">
-          <div>
-          <div className="text-xs uppercase tracking-widest font-semibold opacity-80">Kunnian galleria</div>
-          <h1 className="font-display text-3xl mt-1">Legendat</h1>
+        {/* Decorative icon: clipped to left half so it never sits behind the action button */}
+        <Award
+          aria-hidden
+          className="absolute -left-6 -bottom-6 w-28 h-28 text-night/10 pointer-events-none"
+        />
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-widest font-semibold opacity-80">
+              Kunnian galleria
+            </div>
+            <h1 className="font-display text-3xl mt-1">Legendat</h1>
           </div>
           {isAdmin && (
             <Link
               to="/app/legends-admin"
-              className="shrink-0 inline-flex items-center gap-1 bg-night text-primary-foreground rounded-xl px-3 py-2 text-xs font-display shadow-bold"
+              className="relative z-10 shrink-0 inline-flex items-center gap-1.5 bg-night text-primary-foreground rounded-xl px-3.5 py-2 text-xs font-display shadow-bold"
             >
               <Plus className="w-3.5 h-3.5" /> Lisää
             </Link>
@@ -193,11 +202,14 @@ function HallOfFame() {
             <div className="space-y-2">
               {all.map((s) => {
                 const meta = SHOT_LABELS[s.shot_type];
+                const Icon = meta.Icon;
                 return (
                   <div key={s.id} className="bg-card rounded-2xl p-4 shadow-card">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-bold ${meta.color}`}>
-                        {meta.emoji}
+                      <div
+                        className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center shadow-bold ${meta.color}`}
+                      >
+                        <Icon className="w-5 h-5" strokeWidth={2.25} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-display text-base">
