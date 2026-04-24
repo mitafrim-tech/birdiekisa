@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { uploadUserFile } from "@/lib/upload";
 import { Camera, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
@@ -60,7 +61,7 @@ function Onboarding() {
       toast.success("Profiili tallennettu");
       navigate({ to: "/app" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Profiilin tallennus epäonnistui");
+      toast.error(toUserMessage(err, "Profiilin tallennus epäonnistui"));
     } finally {
       setSaving(false);
     }
