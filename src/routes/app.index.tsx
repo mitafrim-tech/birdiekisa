@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
-import { Trophy, Flag, Crown } from "lucide-react";
+import { Trophy, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { format } from "date-fns";
