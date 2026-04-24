@@ -10,6 +10,7 @@ import { uploadUserFile } from "@/lib/upload";
 import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/app/team-settings")({
   component: TeamSettings,
@@ -32,6 +33,7 @@ function TeamSettings() {
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [editingCourseName, setEditingCourseName] = useState("");
+  const [joinCode, setJoinCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTeam && user && user.id !== activeTeam.admin_id) {
@@ -52,11 +54,23 @@ function TeamSettings() {
     })();
   }, [activeTeam]);
 
+  useEffect(() => {
+    if (!activeTeam || !user || user.id !== activeTeam.admin_id) {
+      setJoinCode(null);
+      return;
+    }
+    supabase
+      .rpc("get_team_join_code", { _team_id: activeTeam.id })
+      .then(({ data }) => {
+        if (typeof data === "string") setJoinCode(data);
+      });
+  }, [activeTeam, user]);
+
   if (!activeTeam) return null;
   if (user && user.id !== activeTeam.admin_id) return null;
 
-  const inviteUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/join/${activeTeam.join_code}`
+  const inviteUrl = typeof window !== "undefined" && joinCode
+    ? `${window.location.origin}/join/${joinCode}`
     : "";
 
   const handleLogo = (f: File | null) => {
@@ -84,7 +98,7 @@ function TeamSettings() {
       await refresh();
       toast.success("Tiimi päivitetty");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Tallennus epäonnistui");
+      toast.error(toUserMessage(err, "Tallennus epäonnistui"));
     } finally {
       setSaving(false);
     }
@@ -150,7 +164,7 @@ function TeamSettings() {
       toast.success("Mestari kruunattu! 🏆");
       navigate({ to: "/app/hall-of-fame" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Kauden arkistointi epäonnistui");
+      toast.error(toUserMessage(err, "Kauden arkistointi epäonnistui"));
     } finally {
       setArchiving(false);
     }

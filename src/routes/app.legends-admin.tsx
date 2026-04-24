@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Crown, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/app/legends-admin")({
   component: LegendsAdmin,
@@ -109,7 +110,7 @@ function LegendsAdmin() {
       toast.success("Legenda lisätty Legendoihin!");
       navigate({ to: "/app/hall-of-fame" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Tallennus epäonnistui");
+      toast.error(toUserMessage(err, "Tallennus epäonnistui"));
     } finally {
       setSubmitting(false);
     }

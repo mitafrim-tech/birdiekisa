@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
 import { Camera, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/app/profile")({
   component: ProfilePage,
@@ -52,7 +53,7 @@ function ProfilePage() {
       toast.success("Profiili päivitetty");
       setFile(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Tallennus epäonnistui");
+      toast.error(toUserMessage(err, "Tallennus epäonnistui"));
     } finally {
       setSaving(false);
     }
