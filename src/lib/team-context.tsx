@@ -9,7 +9,6 @@ export interface TeamSummary {
   admin_id: string;
   season_start: string | null;
   season_end: string | null;
-  join_code: string;
 }
 
 interface TeamContextValue {
@@ -40,7 +39,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("teams")
-      .select("id, name, logo_url, admin_id, season_start, season_end, join_code")
+      .select("id, name, logo_url, admin_id, season_start, season_end")
       .order("created_at", { ascending: true });
 
     if (!error && data) {
