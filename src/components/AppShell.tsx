@@ -109,21 +109,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="relative max-w-md mx-auto px-2 pb-[env(safe-area-inset-bottom)]">
+        <div className="relative max-w-md mx-auto px-2 pt-2 pb-[env(safe-area-inset-bottom)]">
           {/* Floating center FAB for "Lisää tulos" */}
           <Link
             to="/app/log"
             aria-label="Lisää tulos"
-            className="absolute left-1/2 -translate-x-1/2 -top-7 z-10 flex flex-col items-center group"
+            className="absolute left-1/2 -translate-x-1/2 -top-8 z-10 flex flex-col items-center group"
           >
-            <div className="w-16 h-16 rounded-full bg-flag text-primary-foreground shadow-bold flex items-center justify-center transition-transform group-active:scale-95 ring-4 ring-background">
+            <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-bold flex items-center justify-center transition-transform group-active:scale-95 ring-4 ring-background">
               <Plus className="w-8 h-8" strokeWidth={3} />
             </div>
-            <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-flag">
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
               Lisää tulos
             </span>
           </Link>
-          <div className="grid grid-cols-[1fr_1fr_5rem_1fr_1fr] items-stretch">
+          <div className="grid grid-cols-[1fr_1fr_5rem_1fr_1fr] items-stretch pt-1">
             {TABS.map(({ to, label, icon: Icon, exact }, idx) => {
               const active = exact
                 ? location.pathname === to
