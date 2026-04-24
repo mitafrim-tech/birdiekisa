@@ -2,6 +2,7 @@ import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useTeams } from "@/lib/team-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { uploadUserFile } from "@/lib/upload";
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function Onboarding() {
   const { user, loading } = useAuth();
+  const { refresh, setActiveTeamId } = useTeams();
   const navigate = useNavigate();
   const [nickname, setNickname] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -58,6 +60,26 @@ function Onboarding() {
         email: user.email,
       });
       if (error) throw error;
+      // If the user arrived from an invite link, auto-join the team
+      // before sending them into the app so they never see the
+      // "create your own team" screen.
+      if (typeof window !== "undefined") {
+        const pendingJoin =
+          localStorage.getItem("birdie:pendingJoin") ??
+          sessionStorage.getItem("birdie:pendingJoin");
+        if (pendingJoin) {
+          const { data: joinedId, error: joinErr } = await supabase.rpc(
+            "join_team_by_code",
+            { _code: pendingJoin },
+          );
+          localStorage.removeItem("birdie:pendingJoin");
+          sessionStorage.removeItem("birdie:pendingJoin");
+          if (!joinErr) {
+            await refresh();
+            if (typeof joinedId === "string") setActiveTeamId(joinedId);
+          }
+        }
+      }
       toast.success("Profiili tallennettu");
       navigate({ to: "/app" });
     } catch (err) {
