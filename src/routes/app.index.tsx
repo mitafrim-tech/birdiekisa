@@ -120,17 +120,25 @@ function Leaderboard() {
       ) : (
         <div className="space-y-3">
           <AnimatePresence>
-            {rows.map((row, idx) => (
-              <motion.div
-                key={row.user_id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: idx * 0.04 }}
-              >
-                <LeaderCard row={row} rank={idx + 1} leaderBirdies={rows[0]?.birdies ?? 0} />
-              </motion.div>
-            ))}
+            {rows.map((row, idx) => {
+              // Standard competition ranking: tied players share the same rank.
+              // 10, 10, 8 -> 1, 1, 3
+              let rank = 1;
+              for (let i = 0; i < idx; i++) {
+                if (rows[i].birdies > row.birdies) rank = i + 2;
+              }
+              return (
+                <motion.div
+                  key={row.user_id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: idx * 0.04 }}
+                >
+                  <LeaderCard row={row} rank={rank} leaderBirdies={rows[0]?.birdies ?? 0} />
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       )}
