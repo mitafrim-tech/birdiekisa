@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { CelebrationModal, type CelebrationKind } from "@/components/CelebrationModal";
 import { CoursePicker } from "@/components/CoursePicker";
 import { buildWhatsAppMessage, openWhatsAppShare } from "@/lib/share";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/app/log")({
   component: LogRound,
@@ -156,7 +157,7 @@ function LogRound() {
       }
       setStep("saved");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Kierroksen tallennus epäonnistui");
+      toast.error(toUserMessage(err, "Kierroksen tallennus epäonnistui"));
     } finally {
       setSubmitting(false);
     }
