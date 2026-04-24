@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 type TabDef = {
   to: "/app" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
@@ -133,6 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </nav>
+      <InstallPrompt />
     </div>
   );
 }
