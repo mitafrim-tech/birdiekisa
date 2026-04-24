@@ -354,6 +354,103 @@ function TeamSettings() {
         </Button>
       </div>
 
+      {/* Members management */}
+      <div className="bg-card rounded-3xl p-5 shadow-card">
+        <div className="flex items-center gap-2 mb-1">
+          <Users className="w-5 h-5" />
+          <h2 className="font-display text-lg">Tiimin jäsenet</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          Hallinnoi jäseniä: muokkaa pelaajanimeä, poista tiimistä tai siirrä ylläpitäjän rooli.
+        </p>
+        {members.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Ladataan...</p>
+        ) : (
+          <ul className="divide-y">
+            {members.map((m) => {
+              const isMe = m.user_id === user?.id;
+              const isEditing = editingMemberId === m.user_id;
+              return (
+                <li key={m.user_id} className="flex items-center gap-3 py-2.5">
+                  <div className="w-9 h-9 rounded-full bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                    {m.avatar_url ? (
+                      <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        value={editingMemberNickname}
+                        onChange={(e) => setEditingMemberNickname(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); saveEditMember(); }
+                          if (e.key === "Escape") { e.preventDefault(); cancelEditMember(); }
+                        }}
+                        autoFocus
+                        maxLength={30}
+                        className="h-9 flex-1 text-sm"
+                      />
+                      <button type="button" onClick={saveEditMember} className="text-primary hover:opacity-70 shrink-0" aria-label="Tallenna">
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button type="button" onClick={cancelEditMember} className="text-muted-foreground hover:text-foreground shrink-0" aria-label="Peruuta">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm truncate flex items-center gap-2">
+                          <span className="truncate">{m.nickname ?? "(nimetön)"}</span>
+                          {isMe && <span className="text-[10px] text-muted-foreground">(sinä)</span>}
+                        </div>
+                        {m.is_admin && (
+                          <div className="text-[10px] uppercase tracking-wider text-accent-foreground bg-accent inline-block px-1.5 py-0.5 rounded font-semibold mt-0.5">
+                            Ylläpitäjä
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => startEditMember(m)}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Muokkaa nimeä"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      {!m.is_admin && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => transferAdmin(m)}
+                            className="text-muted-foreground hover:text-flag shrink-0"
+                            aria-label="Siirrä ylläpito"
+                            title="Siirrä ylläpito"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(m)}
+                            className="text-muted-foreground hover:text-destructive shrink-0"
+                            aria-label="Poista tiimistä"
+                            title="Poista tiimistä"
+                          >
+                            <UserMinus className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       <form onSubmit={save} className="space-y-4 bg-card rounded-3xl p-5 shadow-card">
         <div className="flex flex-col items-center">
           <button
