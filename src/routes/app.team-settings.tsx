@@ -328,28 +328,74 @@ function TeamSettings() {
           <p className="text-xs text-muted-foreground text-center py-4">Ei vielä kenttiä.</p>
         ) : (
           <ul className="divide-y">
-            {courses.map((c) => (
-              <li key={c.id} className="flex items-center gap-2 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => toggleOfficial(c)}
-                  title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
-                  className="shrink-0"
-                >
-                  <Star
-                    className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
-                  />
-                </button>
-                <span className="flex-1 text-sm truncate">{c.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removeCourse(c.id)}
-                  className="text-muted-foreground hover:text-destructive shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </li>
-            ))}
+            {courses.map((c) => {
+              const isEditing = editingCourseId === c.id;
+              return (
+                <li key={c.id} className="flex items-center gap-2 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleOfficial(c)}
+                    title={c.is_official ? "Poista virallisista" : "Merkitse viralliseksi"}
+                    className="shrink-0"
+                    disabled={isEditing}
+                  >
+                    <Star
+                      className={`w-4 h-4 ${c.is_official ? "text-flag fill-flag" : "text-muted-foreground"}`}
+                    />
+                  </button>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        value={editingCourseName}
+                        onChange={(e) => setEditingCourseName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); saveEditCourse(); }
+                          if (e.key === "Escape") { e.preventDefault(); cancelEditCourse(); }
+                        }}
+                        autoFocus
+                        className="h-9 flex-1 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={saveEditCourse}
+                        className="text-primary hover:opacity-70 shrink-0"
+                        aria-label="Tallenna"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditCourse}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Peruuta"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm truncate">{c.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => startEditCourse(c)}
+                        className="text-muted-foreground hover:text-foreground shrink-0"
+                        aria-label="Muokkaa"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeCourse(c.id)}
+                        className="text-muted-foreground hover:text-destructive shrink-0"
+                        aria-label="Poista"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
