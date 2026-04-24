@@ -1,5 +1,5 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2 } from "lucide-react";
+import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2, Users, UserMinus, ShieldCheck, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { toUserMessage } from "@/lib/errors";
