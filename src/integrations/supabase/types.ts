@@ -344,6 +344,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_remove_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: undefined
+      }
+      admin_update_member_nickname: {
+        Args: { _nickname: string; _team_id: string; _user_id: string }
+        Returns: undefined
+      }
       get_team_by_join_code: {
         Args: { _code: string }
         Returns: {
@@ -362,6 +370,20 @@ export type Database = {
         Returns: boolean
       }
       join_team_by_code: { Args: { _code: string }; Returns: string }
+      list_team_members: {
+        Args: { _team_id: string }
+        Returns: {
+          avatar_url: string
+          is_admin: boolean
+          joined_at: string
+          nickname: string
+          user_id: string
+        }[]
+      }
+      transfer_team_admin: {
+        Args: { _new_admin_id: string; _team_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       shot_type: "eagle" | "albatross" | "hole_in_one"
