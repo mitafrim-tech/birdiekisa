@@ -232,39 +232,6 @@ function HallOfFame() {
             </div>
           );
         })()}
-        {/* Old fallback below removed */}
-        {false && shots.length === 0 ? (
-          <EmptyState icon={Award} title="Ei vielä legendaarisia lyöntejä" description="Eaglet, albatrossit ja holarit ilmestyvät tänne." />
-        ) : (
-          <div className="space-y-2">
-            {shots.map((s) => {
-              const meta = SHOT_LABELS[s.shot_type];
-              return (
-                <div key={s.id} className="bg-card rounded-2xl p-4 shadow-card">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-bold ${meta.color}`}>
-                      {meta.emoji}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-display text-base">
-                        {s.profiles?.nickname ?? "Pelaaja"} <span className="text-muted-foreground font-sans font-normal">— {meta.label}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {s.course_name}
-                        {s.hole_number ? ` • Reikä ${s.hole_number}` : ""}
-                        {" • "}
-                        {format(new Date(s.played_on), "MMM d, yyyy")}
-                      </div>
-                      {s.event_name && (
-                        <div className="text-xs italic text-muted-foreground mt-0.5">{s.event_name}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </section>
     </div>
   );
