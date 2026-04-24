@@ -58,6 +58,29 @@ function TeamSettings() {
     loadMembers();
   }, [loadMembers]);
 
+  // Realtime: refresh member list whenever someone joins or leaves the team
+  useEffect(() => {
+    if (!activeTeam) return;
+    const channel = supabase
+      .channel(`team-members:${activeTeam.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "team_members",
+          filter: `team_id=eq.${activeTeam.id}`,
+        },
+        () => {
+          loadMembers();
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTeam, loadMembers]);
+
   useEffect(() => {
     if (activeTeam && user && user.id !== activeTeam.admin_id) {
       navigate({ to: "/app" });
