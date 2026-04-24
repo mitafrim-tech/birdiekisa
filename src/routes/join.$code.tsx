@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
 import { Button } from "@/components/ui/button";
-import { Flag } from "lucide-react";
+import { Flag, Trophy, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/join/$code")({
@@ -17,6 +17,7 @@ function JoinTeam() {
   const { refresh, setActiveTeamId } = useTeams();
   const navigate = useNavigate();
   const [team, setTeam] = useState<{ id: string; name: string; logo_url: string | null } | null>(null);
+  const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
 
@@ -51,8 +52,7 @@ function JoinTeam() {
     }
     await refresh();
     if (typeof data === "string") setActiveTeamId(data);
-    toast.success(`Liityit tiimiin ${team.name}`);
-    navigate({ to: "/app" });
+    setJoined(true);
   };
 
   return (
@@ -63,6 +63,30 @@ function JoinTeam() {
             <h1 className="font-display text-2xl mb-2">Hups</h1>
             <p className="text-muted-foreground mb-6">{error}</p>
             <Button onClick={() => navigate({ to: "/app" })}>Etusivulle</Button>
+          </>
+        ) : joined && team ? (
+          <>
+            <div className="text-5xl mb-2">🎉</div>
+            <p className="text-sm uppercase tracking-wider text-muted-foreground font-semibold">Tervetuloa tiimiin</p>
+            <h1 className="font-display text-3xl mb-2 mt-1">{team.name}</h1>
+            <p className="text-sm text-muted-foreground mb-6">
+              Olet nyt mukana. Aloita kirjaamalla ensimmäinen birdie tai katso tulostaulu.
+            </p>
+            <div className="space-y-2">
+              <Button
+                onClick={() => navigate({ to: "/app/log" })}
+                className="w-full h-12 font-display rounded-xl"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Kirjaa ensimmäinen tulos
+              </Button>
+              <Button
+                onClick={() => navigate({ to: "/app" })}
+                variant="outline"
+                className="w-full h-12 font-display rounded-xl"
+              >
+                <Trophy className="w-4 h-4 mr-2" /> Katso tulostaulu
+              </Button>
+            </div>
           </>
         ) : team ? (
           <>
