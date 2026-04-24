@@ -25,7 +25,7 @@ const CONFIG: Record<CelebrationKind, {
   eagle: {
     emoji: "🦅",
     title: "EAGLE!",
-    subtitle: "Mahtava lyönti",
+    subtitle: "Kovan luokan suoritus",
     bg: "from-accent via-accent to-flag",
     glow: "shadow-[0_0_120px_60px_rgba(251,191,36,0.5)]",
     particles: 250,
@@ -34,7 +34,7 @@ const CONFIG: Record<CelebrationKind, {
   albatross: {
     emoji: "🪶",
     title: "ALBATROSS!",
-    subtitle: "Harvinainen helmi",
+    subtitle: "Harvinainen herkku",
     bg: "from-sky via-primary to-sky",
     glow: "shadow-[0_0_140px_70px_rgba(56,189,248,0.55)]",
     particles: 400,
@@ -43,7 +43,7 @@ const CONFIG: Record<CelebrationKind, {
   hole_in_one: {
     emoji: "⛳",
     title: "HOLARI!",
-    subtitle: "Kerran elämässä",
+    subtitle: "Kerran elämässä – ehkä",
     bg: "from-flag via-accent to-flag",
     glow: "shadow-[0_0_180px_90px_rgba(244,63,94,0.6)]",
     particles: 600,
