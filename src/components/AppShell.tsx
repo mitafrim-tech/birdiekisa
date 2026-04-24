@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Trophy, CirclePlus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
+import { Trophy, Plus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,16 +14,14 @@ import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 
 type TabDef = {
-  to: "/app" | "/app/log" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
+  to: "/app" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
   label: string;
   icon: typeof Trophy;
   exact?: boolean;
-  highlight?: boolean;
 };
 
 const TABS: TabDef[] = [
   { to: "/app", label: "Tulostaulu", icon: Trophy, exact: true },
-  { to: "/app/log", label: "Kirjaa kierros", icon: CirclePlus, highlight: true },
   { to: "/app/hall-of-fame", label: "Legendat", icon: Award },
   { to: "/app/rules", label: "Säännöt", icon: ScrollText },
   { to: "/app/profile", label: "Minä", icon: UserIcon },
