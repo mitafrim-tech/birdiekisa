@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
@@ -27,59 +27,83 @@ function Leaderboard() {
   const [rows, setRows] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadLeaderboard = useCallback(async () => {
+    if (!activeTeam) return;
+    // Fetch members
+    const { data: members } = await supabase
+      .from("team_members")
+      .select("user_id")
+      .eq("team_id", activeTeam.id);
+
+    const memberIds = (members ?? []).map((m) => m.user_id);
+    const { data: profiles } = memberIds.length
+      ? await supabase
+          .from("profiles")
+          .select("id, nickname, avatar_url")
+          .in("id", memberIds)
+      : { data: [] as { id: string; nickname: string | null; avatar_url: string | null }[] };
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+    // Fetch rounds within season window
+    let q = supabase
+      .from("rounds")
+      .select("user_id, birdies, eagles, albatrosses, hole_in_ones")
+      .eq("team_id", activeTeam.id);
+    if (activeTeam.season_start) q = q.gte("played_on", activeTeam.season_start);
+    if (activeTeam.season_end) q = q.lte("played_on", activeTeam.season_end);
+    const { data: rounds } = await q;
+
+    const totals = new Map<string, { birdies: number; eagles: number; albatrosses: number; hole_in_ones: number }>();
+    (rounds ?? []).forEach((r) => {
+      const cur = totals.get(r.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
+      cur.birdies += r.birdies;
+      cur.eagles += r.eagles;
+      cur.albatrosses += r.albatrosses;
+      cur.hole_in_ones += r.hole_in_ones;
+      totals.set(r.user_id, cur);
+    });
+
+    const built: LeaderRow[] = (members ?? []).map((m) => {
+      const t = totals.get(m.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
+      const p = profileMap.get(m.user_id);
+      return {
+        user_id: m.user_id,
+        nickname: p?.nickname ?? "Player",
+        avatar_url: p?.avatar_url ?? null,
+        ...t,
+      };
+    });
+    built.sort((a, b) => b.birdies - a.birdies);
+    setRows(built);
+    setLoading(false);
+  }, [activeTeam]);
+
   useEffect(() => {
     if (!activeTeam) return;
     setLoading(true);
-    (async () => {
-      // Fetch members
-      const { data: members } = await supabase
-        .from("team_members")
-        .select("user_id")
-        .eq("team_id", activeTeam.id);
+    loadLeaderboard();
+  }, [activeTeam, loadLeaderboard]);
 
-      const memberIds = (members ?? []).map((m) => m.user_id);
-      const { data: profiles } = memberIds.length
-        ? await supabase
-            .from("profiles")
-            .select("id, nickname, avatar_url")
-            .in("id", memberIds)
-        : { data: [] as { id: string; nickname: string | null; avatar_url: string | null }[] };
-      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-
-      // Fetch rounds within season window
-      let q = supabase
-        .from("rounds")
-        .select("user_id, birdies, eagles, albatrosses, hole_in_ones")
-        .eq("team_id", activeTeam.id);
-      if (activeTeam.season_start) q = q.gte("played_on", activeTeam.season_start);
-      if (activeTeam.season_end) q = q.lte("played_on", activeTeam.season_end);
-      const { data: rounds } = await q;
-
-      const totals = new Map<string, { birdies: number; eagles: number; albatrosses: number; hole_in_ones: number }>();
-      (rounds ?? []).forEach((r) => {
-        const cur = totals.get(r.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
-        cur.birdies += r.birdies;
-        cur.eagles += r.eagles;
-        cur.albatrosses += r.albatrosses;
-        cur.hole_in_ones += r.hole_in_ones;
-        totals.set(r.user_id, cur);
-      });
-
-      const built: LeaderRow[] = (members ?? []).map((m) => {
-        const t = totals.get(m.user_id) ?? { birdies: 0, eagles: 0, albatrosses: 0, hole_in_ones: 0 };
-        const p = profileMap.get(m.user_id);
-        return {
-          user_id: m.user_id,
-          nickname: p?.nickname ?? "Player",
-          avatar_url: p?.avatar_url ?? null,
-          ...t,
-        };
-      });
-      built.sort((a, b) => b.birdies - a.birdies);
-      setRows(built);
-      setLoading(false);
-    })();
-  }, [activeTeam]);
+  // Realtime: refresh when teammates join/leave or log new rounds
+  useEffect(() => {
+    if (!activeTeam) return;
+    const channel = supabase
+      .channel(`leaderboard:${activeTeam.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "team_members", filter: `team_id=eq.${activeTeam.id}` },
+        () => loadLeaderboard(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rounds", filter: `team_id=eq.${activeTeam.id}` },
+        () => loadLeaderboard(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTeam, loadLeaderboard]);
 
   if (!activeTeam) return null;
 
