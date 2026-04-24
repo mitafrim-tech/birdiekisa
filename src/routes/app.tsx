@@ -12,10 +12,11 @@ export const Route = createFileRoute("/app")({
 
 function AppLayout() {
   const { user, loading } = useAuth();
-  const { teams, loading: teamsLoading } = useTeams();
+  const { teams, loading: teamsLoading, refresh, setActiveTeamId } = useTeams();
   const location = useLocation();
   const [profileChecked, setProfileChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [joinChecked, setJoinChecked] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -35,6 +36,41 @@ function AppLayout() {
     };
   }, [user]);
 
+  // Safety net: if a pending invite code is sitting in storage when the
+  // user lands inside /app (e.g. after onboarding), consume it now so
+  // they never see the "create a team" fallback.
+  useEffect(() => {
+    if (!user || teamsLoading) return;
+    if (typeof window === "undefined") {
+      setJoinChecked(true);
+      return;
+    }
+    const pendingJoin =
+      localStorage.getItem("birdie:pendingJoin") ??
+      sessionStorage.getItem("birdie:pendingJoin");
+    if (!pendingJoin) {
+      setJoinChecked(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.rpc("join_team_by_code", {
+        _code: pendingJoin,
+      });
+      if (cancelled) return;
+      localStorage.removeItem("birdie:pendingJoin");
+      sessionStorage.removeItem("birdie:pendingJoin");
+      if (!error) {
+        await refresh();
+        if (typeof data === "string") setActiveTeamId(data);
+      }
+      setJoinChecked(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, teamsLoading, refresh, setActiveTeamId]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -45,7 +81,7 @@ function AppLayout() {
 
   if (!user) return <Navigate to="/" />;
 
-  if (!profileChecked) {
+  if (!profileChecked || !joinChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Flag className="w-8 h-8 text-primary animate-pulse" />
