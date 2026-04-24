@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trophy, Flag, Sparkles } from "lucide-react";
 import { toUserMessage } from "@/lib/errors";
+import logoBirdie from "@/assets/logo-birdie.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,8 +66,12 @@ function LandingPage() {
           transition={{ duration: 0.6 }}
           className="flex items-center gap-3 mb-12"
         >
-          <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-bold">
-            <Flag className="w-7 h-7 text-night" strokeWidth={3} />
+          <div className="w-14 h-14 rounded-2xl bg-primary-foreground flex items-center justify-center shadow-bold overflow-hidden">
+            <img
+              src={logoBirdie}
+              alt="Birdie logo"
+              className="w-12 h-12 object-contain"
+            />
           </div>
           <span className="font-display text-3xl tracking-tight">birdie</span>
         </motion.div>
