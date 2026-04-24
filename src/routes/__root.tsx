@@ -44,6 +44,10 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Birdie" },
       { name: "theme-color", content: "#0b0f0a" },
+      { name: "twitter:title", content: "Birdie — Pidä kirjaa golfkaudestasi" },
+      { name: "twitter:description", content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp" },
     ],
     links: [
       {
