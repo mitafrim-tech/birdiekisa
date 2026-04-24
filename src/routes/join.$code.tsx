@@ -6,6 +6,7 @@ import { useTeams } from "@/lib/team-context";
 import { Button } from "@/components/ui/button";
 import { Flag, Trophy, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { toUserMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/join/$code")({
   component: JoinTeam,
@@ -47,7 +48,7 @@ function JoinTeam() {
     const { data, error } = await supabase.rpc("join_team_by_code", { _code: code });
     setJoining(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(toUserMessage(error, "Liittyminen epäonnistui"));
       return;
     }
     await refresh();
