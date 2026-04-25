@@ -126,35 +126,3 @@ function AndroidInstructions() {
     </ol>
   );
 }
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                1
-              </span>
-              <span>
-                Paina selaimen <Share className="inline w-4 h-4 align-text-bottom mx-0.5" />{" "}
-                <span className="font-semibold">Jaa</span>-painiketta alapalkista.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                2
-              </span>
-              <span>
-                Valitse <span className="font-semibold">"Lisää Koti-valikkoon"</span>{" "}
-                <Plus className="inline w-4 h-4 align-text-bottom mx-0.5" />.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                3
-              </span>
-              <span>
-                Vahvista painamalla <span className="font-semibold">"Lisää"</span>.
-              </span>
-            </li>
-          </ol>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
