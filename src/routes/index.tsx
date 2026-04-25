@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -60,12 +59,7 @@ function LandingPage() {
       <div className="absolute -bottom-32 -left-10 w-96 h-96 rounded-full bg-flag/30 blur-3xl" />
 
       <div className="relative max-w-md mx-auto px-6 pt-16 pb-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex items-center gap-3 mb-12"
-        >
+        <div className="flex items-center gap-3 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
           <div className="w-14 h-14 rounded-2xl bg-primary-foreground flex items-center justify-center shadow-bold overflow-hidden">
             <img
               src={logoBirdie}
@@ -79,31 +73,24 @@ function LandingPage() {
             />
           </div>
           <span className="font-display text-3xl tracking-tight">birdie</span>
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={false}
-          className="font-display text-5xl sm:text-6xl leading-[0.95] mb-6 text-balance"
-        >
+        <h1 className="font-display text-5xl sm:text-6xl leading-[0.95] mb-6 text-balance">
           Kuka on kauden<br />
           <span className="text-accent">pirkkokisan</span><br />
           kingi?
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="text-lg text-primary-foreground/85 mb-10 text-balance"
+        <p
+          className="text-lg text-primary-foreground/85 mb-10 text-balance animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
+          style={{ animationDelay: "200ms" }}
         >
           Merkkaa birdiet. Kilpaile tiimisi kanssa. Kohoa golf-legendaksi.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="bg-card text-card-foreground rounded-3xl p-6 shadow-card"
+        <div
+          className="bg-card text-card-foreground rounded-3xl p-6 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
+          style={{ animationDelay: "300ms" }}
         >
           {sent ? (
             <div className="text-center py-6">
@@ -149,13 +136,11 @@ function LandingPage() {
               </p>
             </form>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-12 grid grid-cols-3 gap-3 text-center"
+        <div
+          className="mt-12 grid grid-cols-3 gap-3 text-center animate-in fade-in duration-700 fill-mode-both"
+          style={{ animationDelay: "500ms" }}
         >
           {[
             { icon: Flag, label: "Kirjaa kierrokset" },
@@ -167,7 +152,7 @@ function LandingPage() {
               <div className="text-xs font-medium">{label}</div>
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </div>
   );
