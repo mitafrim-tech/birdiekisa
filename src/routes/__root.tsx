@@ -5,6 +5,11 @@ import { AuthProvider } from "@/lib/auth";
 import { TeamProvider } from "@/lib/team-context";
 import { Toaster } from "@/components/ui/sonner";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
+import { ConnectivityProvider } from "@/lib/connectivity";
+import { ConnectionBanner } from "@/components/ConnectionBanner";
+import { useEffect } from "react";
+import { startRoundQueueDrainer } from "@/lib/round-queue";
+import { registerServiceWorker } from "@/lib/register-sw";
 
 function NotFoundComponent() {
   return (
@@ -100,17 +105,34 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthProvider>
-      <TeamProvider>
-        <Outlet />
-        <InstallPromptEventBridge />
-        <Toaster />
-      </TeamProvider>
-    </AuthProvider>
+    <ConnectivityProvider>
+      <AuthProvider>
+        <TeamProvider>
+          <ConnectionBanner />
+          <Outlet />
+          <InstallPromptEventBridge />
+          <BackgroundServices />
+          <Toaster />
+        </TeamProvider>
+      </AuthProvider>
+    </ConnectivityProvider>
   );
 }
 
 function InstallPromptEventBridge() {
   useInstallPrompt();
+  return null;
+}
+
+/**
+ * One-shot mount-time side-effects:
+ *  - kicks off the offline round queue drainer
+ *  - registers the production service worker (gated against preview/iframes)
+ */
+function BackgroundServices() {
+  useEffect(() => {
+    startRoundQueueDrainer();
+    registerServiceWorker();
+  }, []);
   return null;
 }
