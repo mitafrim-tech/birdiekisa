@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Flag, Plus } from "lucide-react";
+import { Camera, Flag, Plus, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { toUserMessage } from "@/lib/errors";
 
@@ -73,30 +73,49 @@ function TeamsPage() {
       {teams.length > 0 && (
         <div className="space-y-2">
           {teams.map((t) => (
-            <button
+            <div
               key={t.id}
-              onClick={() => {
-                setActiveTeamId(t.id);
-                navigate({ to: "/app" });
-              }}
-              className="w-full bg-card rounded-2xl p-4 shadow-card flex items-center gap-3 hover:scale-[1.01] transition-transform"
+              className="w-full bg-card rounded-2xl p-4 shadow-card flex items-center gap-3"
             >
-              {t.logo_url ? (
-                <img src={t.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-                  <Flag className="w-6 h-6 text-primary-foreground" strokeWidth={3} />
-                </div>
-              )}
-              <div className="flex-1 text-left">
-                <div className="font-display text-lg">{t.name}</div>
-                {t.admin_id === user?.id && (
-                  <div className="text-[10px] uppercase tracking-wider text-accent-foreground bg-accent inline-block px-2 py-0.5 rounded font-semibold">
-                    Ylläpitäjä
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTeamId(t.id);
+                  navigate({ to: "/app" });
+                }}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+              >
+                {t.logo_url ? (
+                  <img src={t.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
+                    <Flag className="w-6 h-6 text-primary-foreground" strokeWidth={3} />
                   </div>
                 )}
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-lg truncate">{t.name}</div>
+                  {t.admin_id === user?.id && (
+                    <div className="text-[10px] uppercase tracking-wider text-accent-foreground bg-accent inline-block px-2 py-0.5 rounded font-semibold">
+                      Ylläpitäjä
+                    </div>
+                  )}
+                </div>
+              </button>
+              {t.admin_id === user?.id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTeamId(t.id);
+                    navigate({ to: "/app/team-settings" });
+                  }}
+                  className="w-10 h-10 rounded-xl bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shrink-0"
+                  aria-label="Hallinnoi tiimiä"
+                  title="Hallinnoi tiimiä"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
