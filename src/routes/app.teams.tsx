@@ -164,17 +164,6 @@ function TeamsPage() {
           </div>
         </form>
       )}
-
-      <div className="bg-secondary rounded-3xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          <h2 className="font-display text-lg">Onko kutsukoodi?</h2>
-        </div>
-        <form onSubmit={joinByCode} className="flex gap-2">
-          <Input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="abc12345" className="h-12" />
-          <Button type="submit" className="h-12 rounded-xl">Liity</Button>
-        </form>
-      </div>
     </div>
   );
 }
