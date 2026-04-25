@@ -20,14 +20,23 @@ function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  // Snapshot of values loaded from the server, used to detect dirty state
+  // so we can disable the Save button when nothing has changed.
+  const [initial, setInitial] = useState<{ nickname: string; avatar_url: string | null }>({
+    nickname: "",
+    avatar_url: null,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("nickname, avatar_url").eq("id", user.id).single().then(({ data }) => {
       if (data) {
-        setNickname(data.nickname ?? "");
-        setPreviewUrl(data.avatar_url ?? null);
+        const nick = data.nickname ?? "";
+        const avatar = data.avatar_url ?? null;
+        setNickname(nick);
+        setPreviewUrl(avatar);
+        setInitial({ nickname: nick, avatar_url: avatar });
       }
     });
   }, [user]);
@@ -52,12 +61,19 @@ function ProfilePage() {
       if (error) throw error;
       toast.success("Profiili päivitetty");
       setFile(null);
+      setInitial({ nickname: nickname.trim(), avatar_url: avatarUrl });
+      if (avatarUrl) setPreviewUrl(avatarUrl);
     } catch (err) {
       toast.error(toUserMessage(err, "Tallennus epäonnistui"));
     } finally {
       setSaving(false);
     }
   };
+
+  const isDirty =
+    !!file ||
+    nickname.trim() !== initial.nickname.trim() ||
+    (previewUrl ?? null) !== (initial.avatar_url ?? null);
 
   return (
     <div className="space-y-6 pb-8">
@@ -104,7 +120,11 @@ function ProfilePage() {
         </div>
       </div>
 
-      <Button onClick={save} disabled={saving || !nickname.trim()} className="w-full h-12 rounded-xl font-display">
+      <Button
+        onClick={save}
+        disabled={saving || !nickname.trim() || !isDirty}
+        className="w-full h-12 rounded-xl font-display"
+      >
         {saving ? "Tallennetaan..." : "Tallenna muutokset"}
       </Button>
     </div>
