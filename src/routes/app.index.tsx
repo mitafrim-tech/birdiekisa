@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
@@ -174,8 +173,7 @@ function Leaderboard() {
         />
       ) : (
         <div className="space-y-3">
-          <AnimatePresence>
-            {rows.map((row, idx) => {
+          {rows.map((row, idx) => {
               // Standard competition ranking: tied players share the same rank.
               // 10, 10, 8 -> 1, 1, 3
               let rank = 1;
@@ -183,18 +181,15 @@ function Leaderboard() {
                 if (rows[i].birdies > row.birdies) rank = i + 2;
               }
               return (
-                <motion.div
+                <div
                   key={row.user_id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: idx * 0.04 }}
+                  className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+                  style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   <LeaderCard row={row} rank={rank} leaderBirdies={rows[0]?.birdies ?? 0} />
-                </motion.div>
+                </div>
               );
             })}
-          </AnimatePresence>
         </div>
       )}
 
