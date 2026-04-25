@@ -36,8 +36,10 @@ export function buildWhatsAppMessage(s: RoundSummary): string {
 
   // Extra stats line — show everything that happened, in rarity order
   const stats: string[] = [];
-  if (s.hole_in_ones > 0) stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
-  if (s.albatrosses > 0) stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
+  if (s.hole_in_ones > 0)
+    stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
+  if (s.albatrosses > 0)
+    stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
   if (s.eagles > 0) stats.push(`${s.eagles} eagle${s.eagles === 1 ? "" : "a"} 🦅`);
   if (s.birdies > 0) stats.push(`${s.birdies} ${pluralBirdie(s.birdies)} 🐦`);
 
@@ -89,10 +91,7 @@ function buildInviteShareText(teamName: string): string {
  * user dismissed). Cancelled shares resolve `false` so the UI can
  * stay quiet rather than show a fallback.
  */
-export async function nativeShareInvite(
-  teamName: string,
-  inviteUrl: string,
-): Promise<boolean> {
+export async function nativeShareInvite(teamName: string, inviteUrl: string): Promise<boolean> {
   if (typeof navigator === "undefined" || !("share" in navigator)) {
     return false;
   }
