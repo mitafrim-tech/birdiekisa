@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Share, Plus, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
+import { toast } from "sonner";
 
 const DISMISS_KEY = "birdie:installPromptDismissedAt";
+const INSTALL_TOAST_KEY = "birdie:installToastShown";
 const SNOOZE_DAYS = 14;
 
 export function InstallPrompt() {
-  const { canInstall, ios, hasNativePrompt, promptInstall } = useInstallPrompt();
+  const { canInstall, ios, hasNativePrompt, promptInstall, standalone, freshPromptTick } =
+    useInstallPrompt();
   const [snoozed, setSnoozed] = useState(true);
 
   useEffect(() => {
@@ -19,7 +22,29 @@ export function InstallPrompt() {
     }
     const days = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
     setSnoozed(days < SNOOZE_DAYS);
-  }, []);
+  }, [freshPromptTick]);
+
+  // When the browser signals a brand-new install opportunity (e.g. after an
+  // uninstall), clear any prior snooze so the user sees the CTA again.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (freshPromptTick === 0) return;
+    window.localStorage.removeItem(DISMISS_KEY);
+    setSnoozed(false);
+  }, [freshPromptTick]);
+
+  // Celebrate a successful install (once per device) and ensure the card stays hidden.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!standalone) return;
+    const shown = window.localStorage.getItem(INSTALL_TOAST_KEY);
+    if (shown) return;
+    window.localStorage.setItem(INSTALL_TOAST_KEY, String(Date.now()));
+    window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    toast.success("Birdie asennettu! 🎉", {
+      description: "Avaa sovellus aloitusnäytöltä yhdellä napautuksella.",
+    });
+  }, [standalone]);
 
   const dismiss = () => {
     if (typeof window !== "undefined") {
