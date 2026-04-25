@@ -17,13 +17,13 @@ import { useInstallPrompt } from "@/hooks/use-install-prompt";
  * - On iOS, opens a dialog with manual "Add to Home Screen" instructions.
  */
 export function InstallButton() {
-  const { canInstall, ios, hasNativePrompt, promptInstall } = useInstallPrompt();
+  const { canInstall, ios, android, hasNativePrompt, promptInstall } = useInstallPrompt();
   const [iosOpen, setIosOpen] = useState(false);
 
   if (!canInstall) return null;
 
   const handleClick = async () => {
-    if (ios) {
+    if (ios || (android && !hasNativePrompt)) {
       setIosOpen(true);
       return;
     }
@@ -59,36 +59,70 @@ export function InstallButton() {
               Sovellus aukeaa yhdellä napautuksella ja toimii kuin natiivisovellus.
             </DialogDescription>
           </DialogHeader>
-          <ol className="space-y-3 text-sm">
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                1
-              </span>
-              <span>
-                Paina selaimen <Share className="inline w-4 h-4 align-text-bottom mx-0.5" />{" "}
-                <span className="font-semibold">Jaa</span>-painiketta alapalkista.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                2
-              </span>
-              <span>
-                Valitse <span className="font-semibold">"Lisää Koti-valikkoon"</span>{" "}
-                <Plus className="inline w-4 h-4 align-text-bottom mx-0.5" />.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
-                3
-              </span>
-              <span>
-                Vahvista painamalla <span className="font-semibold">"Lisää"</span>.
-              </span>
-            </li>
-          </ol>
+          {android && !hasNativePrompt ? <AndroidInstructions /> : <IosInstructions />}
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function IosInstructions() {
+  return (
+    <ol className="space-y-3 text-sm">
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          1
+        </span>
+        <span>
+          Paina selaimen <Share className="inline w-4 h-4 align-text-bottom mx-0.5" />{" "}
+          <span className="font-semibold">Jaa</span>-painiketta alapalkista.
+        </span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          2
+        </span>
+        <span>
+          Valitse <span className="font-semibold">"Lisää Koti-valikkoon"</span>{" "}
+          <Plus className="inline w-4 h-4 align-text-bottom mx-0.5" />.
+        </span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          3
+        </span>
+        <span>
+          Vahvista painamalla <span className="font-semibold">"Lisää"</span>.
+        </span>
+      </li>
+    </ol>
+  );
+}
+
+function AndroidInstructions() {
+  return (
+    <ol className="space-y-3 text-sm">
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          1
+        </span>
+        <span>Avaa selaimen valikko oikeasta yläkulmasta.</span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          2
+        </span>
+        <span>
+          Valitse <span className="font-semibold">"Asenna sovellus"</span> tai{" "}
+          <span className="font-semibold">"Lisää aloitusnäytölle"</span>.
+        </span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-full bg-muted text-foreground font-semibold flex items-center justify-center shrink-0 text-xs">
+          3
+        </span>
+        <span>Vahvista asennus.</span>
+      </li>
+    </ol>
   );
 }

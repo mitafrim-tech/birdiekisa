@@ -4,6 +4,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { TeamProvider } from "@/lib/team-context";
 import { Toaster } from "@/components/ui/sonner";
+import { useInstallPrompt } from "@/hooks/use-install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -33,10 +34,16 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Birdie — Pidä kirjaa golfkaudestasi" },
-      { name: "description", content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa." },
+      {
+        name: "description",
+        content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa.",
+      },
       { name: "author", content: "Birdie" },
       { property: "og:title", content: "Birdie — Pidä kirjaa golfkaudestasi" },
-      { property: "og:description", content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa." },
+      {
+        property: "og:description",
+        content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -45,9 +52,20 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-title", content: "Birdie" },
       { name: "theme-color", content: "#0b0f0a" },
       { name: "twitter:title", content: "Birdie — Pidä kirjaa golfkaudestasi" },
-      { name: "twitter:description", content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp" },
+      {
+        name: "twitter:description",
+        content: "Pidä kirjaa birdieistä, eagleista ja holareista golfporukkasi kanssa.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NltAKmeaw2M0vQ4utZe49nsxRds1/social-images/social-1777035571831-Gemini_Generated_Image_kmwq8gkmwq8gkmwq.webp",
+      },
     ],
     links: [
       {
@@ -85,8 +103,14 @@ function RootComponent() {
     <AuthProvider>
       <TeamProvider>
         <Outlet />
+        <InstallPromptEventBridge />
         <Toaster />
       </TeamProvider>
     </AuthProvider>
   );
+}
+
+function InstallPromptEventBridge() {
+  useInstallPrompt();
+  return null;
 }
