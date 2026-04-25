@@ -70,7 +70,7 @@ function Leaderboard() {
       const p = profileMap.get(m.user_id);
       return {
         user_id: m.user_id,
-        nickname: p?.nickname ?? "Player",
+        nickname: p?.nickname ?? "Pelaaja",
         avatar_url: p?.avatar_url ?? null,
         ...t,
       };
