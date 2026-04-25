@@ -8,6 +8,26 @@ type BIPEvent = Event & {
 const INSTALLED_KEY = "birdie:installedAt";
 const LAST_BIP_KEY = "birdie:lastBeforeInstallPromptAt";
 
+let sharedDeferred: BIPEvent | null = null;
+let sharedFreshPromptTick = 0;
+const listeners = new Set<() => void>();
+
+function notifyListeners() {
+  listeners.forEach((listener) => listener());
+}
+
+function isPreviewContext() {
+  if (typeof window === "undefined") return true;
+  if (isInIframe()) return true;
+  const host = window.location.hostname;
+  return (
+    host.includes("id-preview--") ||
+    host.includes("lovableproject.com") ||
+    host === "localhost" ||
+    host === "127.0.0.1"
+  );
+}
+
 function isStandalone() {
   if (typeof window === "undefined") return false;
   const mql = window.matchMedia?.("(display-mode: standalone)").matches;
@@ -36,21 +56,29 @@ function isIOS() {
  * - Hides everything once the app is running in standalone mode.
  */
 export function useInstallPrompt() {
-  const [deferred, setDeferred] = useState<BIPEvent | null>(null);
+  const [deferred, setDeferred] = useState<BIPEvent | null>(() => sharedDeferred);
   const [standalone, setStandalone] = useState<boolean>(() => isStandalone());
   const [ios, setIos] = useState(false);
   // Increments whenever the browser fires a fresh `beforeinstallprompt`,
   // signalling that the device is once again installable (e.g. after an
   // uninstall). Consumers can watch this to clear their own snooze state.
-  const [freshPromptTick, setFreshPromptTick] = useState(0);
+  const [freshPromptTick, setFreshPromptTick] = useState(sharedFreshPromptTick);
 
   useEffect(() => {
     setStandalone(isStandalone());
     setIos(isIOS());
+    setDeferred(sharedDeferred);
+    setFreshPromptTick(sharedFreshPromptTick);
+
+    const syncFromSharedState = () => {
+      setDeferred(sharedDeferred);
+      setFreshPromptTick(sharedFreshPromptTick);
+    };
+    listeners.add(syncFromSharedState);
 
     const onBIP = (e: Event) => {
       e.preventDefault();
-      setDeferred(e as BIPEvent);
+      sharedDeferred = e as BIPEvent;
       // Detect "fresh" signals: if more than 1 minute has passed since the
       // last BIP we treat it as a new installability window (covers reload
       // after uninstall). Always tick on first event in a session.
@@ -58,21 +86,23 @@ export function useInstallPrompt() {
         const last = Number(window.localStorage.getItem(LAST_BIP_KEY) ?? 0);
         const now = Date.now();
         if (!last || now - last > 60_000) {
-          setFreshPromptTick((t) => t + 1);
+          sharedFreshPromptTick += 1;
         }
         window.localStorage.setItem(LAST_BIP_KEY, String(now));
       } catch {
-        setFreshPromptTick((t) => t + 1);
+        sharedFreshPromptTick += 1;
       }
+      notifyListeners();
     };
     const onInstalled = () => {
-      setDeferred(null);
+      sharedDeferred = null;
       setStandalone(true);
       try {
         window.localStorage.setItem(INSTALLED_KEY, String(Date.now()));
       } catch {
         // ignore storage failures
       }
+      notifyListeners();
     };
     const mql = window.matchMedia?.("(display-mode: standalone)");
     const onModeChange = () => setStandalone(isStandalone());
@@ -85,6 +115,7 @@ export function useInstallPrompt() {
       window.removeEventListener("beforeinstallprompt", onBIP);
       window.removeEventListener("appinstalled", onInstalled);
       mql?.removeEventListener?.("change", onModeChange);
+      listeners.delete(syncFromSharedState);
     };
   }, []);
 
@@ -92,23 +123,12 @@ export function useInstallPrompt() {
     if (!deferred) return null;
     await deferred.prompt();
     const { outcome } = await deferred.userChoice;
-    setDeferred(null);
+    sharedDeferred = null;
+    notifyListeners();
     return outcome;
   }, [deferred]);
 
-  // Hide on Lovable preview / iframes — install isn't useful there.
-  const isPreviewContext = (() => {
-    if (typeof window === "undefined") return true;
-    if (isInIframe()) return true;
-    const host = window.location.hostname;
-    return (
-      host.includes("lovable.app") ||
-      host.includes("lovableproject.com") ||
-      host === "localhost"
-    );
-  })();
-
-  const canInstall = !standalone && !isPreviewContext && (Boolean(deferred) || ios);
+  const canInstall = !standalone && !isPreviewContext() && (Boolean(deferred) || ios);
 
   return {
     canInstall,
