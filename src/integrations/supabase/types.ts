@@ -86,6 +86,7 @@ export type Database = {
           played_on: string
           round_id: string
           shot_type: Database["public"]["Enums"]["shot_type"]
+          submission_id: string | null
           team_id: string
           user_id: string
         }
@@ -98,6 +99,7 @@ export type Database = {
           played_on: string
           round_id: string
           shot_type: Database["public"]["Enums"]["shot_type"]
+          submission_id?: string | null
           team_id: string
           user_id: string
         }
@@ -110,6 +112,7 @@ export type Database = {
           played_on?: string
           round_id?: string
           shot_type?: Database["public"]["Enums"]["shot_type"]
+          submission_id?: string | null
           team_id?: string
           user_id?: string
         }
@@ -168,6 +171,7 @@ export type Database = {
           holes_played: number
           id: string
           played_on: string
+          submission_id: string | null
           team_id: string
           updated_at: string
           user_id: string
@@ -182,6 +186,7 @@ export type Database = {
           holes_played: number
           id?: string
           played_on: string
+          submission_id?: string | null
           team_id: string
           updated_at?: string
           user_id: string
@@ -196,6 +201,7 @@ export type Database = {
           holes_played?: number
           id?: string
           played_on?: string
+          submission_id?: string | null
           team_id?: string
           updated_at?: string
           user_id?: string
