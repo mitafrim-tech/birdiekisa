@@ -128,7 +128,7 @@ function HallOfFame() {
           {isAdmin && (
             <Link
               to="/app/legends-admin"
-              className="relative z-10 shrink-0 inline-flex items-center gap-1.5 bg-night text-primary-foreground rounded-xl px-3.5 py-2 text-xs font-display shadow-bold"
+              className="relative z-10 shrink-0 inline-flex items-center gap-1.5 bg-night/90 text-primary-foreground rounded-full px-3.5 py-2 text-xs font-display shadow-soft hover:bg-night transition-colors"
             >
               <Plus className="w-3.5 h-3.5" /> Lisää
             </Link>

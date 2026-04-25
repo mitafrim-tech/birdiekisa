@@ -3,9 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
+import { useAuth } from "@/lib/auth";
 import { Trophy, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
+import { InviteCard } from "@/components/InviteCard";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/")({
@@ -24,6 +26,7 @@ interface LeaderRow {
 
 function Leaderboard() {
   const { activeTeam } = useTeams();
+  const { user } = useAuth();
   const [rows, setRows] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -125,6 +128,12 @@ function Leaderboard() {
       ? `${format(new Date(activeTeam.season_start), "MMM d")} – ${format(new Date(activeTeam.season_end), "MMM d, yyyy")}`
       : "Kautta ei ole asetettu";
 
+  const isAdmin = !!(user && user.id === activeTeam.admin_id);
+  // Member count comes from the leaderboard rows (every team member is mapped
+  // 1:1 even before they log a round). When the admin is essentially alone we
+  // surface a prominent invite card so they're never stuck on an empty board.
+  const showInviteNudge = isAdmin && !loading && rows.length <= 1;
+
   return (
     <div className="space-y-6 pb-4">
       {/* Hero */}
@@ -136,6 +145,15 @@ function Leaderboard() {
           <div className="text-sm opacity-90 mt-1">{seasonLabel}</div>
         </div>
       </div>
+
+      {showInviteNudge && (
+        <InviteCard
+          teamId={activeTeam.id}
+          teamName={activeTeam.name}
+          variant="soft"
+          description="Lähetä linkki kavereille — heti kun he liittyvät, he ilmestyvät tulostauluun."
+        />
+      )}
 
       {loading ? (
         <div className="space-y-3">
