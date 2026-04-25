@@ -90,9 +90,11 @@ function ProfilePage() {
           ) : (
             <UserIcon className="w-10 h-10 text-primary/60" />
           )}
-          <div className="absolute bottom-0 right-0 w-9 h-9 bg-accent rounded-full flex items-center justify-center shadow-bold border-4 border-background">
-            <Camera className="w-4 h-4 text-night" strokeWidth={2.5} />
-          </div>
+          {!previewUrl && (
+            <div className="absolute bottom-0 right-0 w-9 h-9 bg-accent rounded-full flex items-center justify-center shadow-bold border-4 border-background">
+              <Camera className="w-4 h-4 text-night" strokeWidth={2.5} />
+            </div>
+          )}
         </button>
         <input
           ref={fileRef}
