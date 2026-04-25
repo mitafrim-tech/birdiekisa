@@ -107,9 +107,11 @@ function Onboarding() {
               ) : (
                 <UserIcon className="w-12 h-12 text-primary/60" strokeWidth={2} />
               )}
-              <div className="absolute bottom-0 right-0 w-10 h-10 bg-accent rounded-full flex items-center justify-center shadow-bold border-4 border-background">
-                <Camera className="w-5 h-5 text-night" strokeWidth={2.5} />
-              </div>
+              {!previewUrl && (
+                <div className="absolute bottom-0 right-0 w-10 h-10 bg-accent rounded-full flex items-center justify-center shadow-bold border-4 border-background">
+                  <Camera className="w-5 h-5 text-night" strokeWidth={2.5} />
+                </div>
+              )}
             </button>
             <input
               ref={fileRef}
