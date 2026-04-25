@@ -72,6 +72,16 @@ export function buildInviteMessage(teamName: string, inviteUrl: string): string 
   );
 }
 
+/** Body text for the native share sheet — omits the URL because the
+ * share API appends it separately. Including the URL in both fields
+ * causes targets like WhatsApp to show the link twice. */
+function buildInviteShareText(teamName: string): string {
+  return (
+    `Hei! Liity tiimiimme *${teamName}* Birdiekisassa 🏌️‍♂️⛳️\n\n` +
+    `Kirjataan birdiet, eaglet ja holarit yhdessä koko kausi.`
+  );
+}
+
 /**
  * Try the native Web Share API (mobile share sheet incl. WhatsApp,
  * Messages, Mail, etc). Returns true if the share sheet was used,
@@ -89,7 +99,7 @@ export async function nativeShareInvite(
   try {
     await navigator.share({
       title: `Liity tiimiin ${teamName}`,
-      text: buildInviteMessage(teamName, inviteUrl),
+      text: buildInviteShareText(teamName),
       url: inviteUrl,
     });
     return true;
