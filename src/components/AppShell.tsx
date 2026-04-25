@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { InstallButton } from "@/components/InstallButton";
 
 type TabDef = {
   to: "/app" | "/app/hall-of-fame" | "/app/rules" | "/app/profile";
@@ -101,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <InstallButton />
         </div>
       </header>
 

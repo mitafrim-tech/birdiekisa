@@ -1,98 +1,39 @@
 import { useEffect, useState } from "react";
 import { Share, Plus, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useInstallPrompt } from "@/hooks/use-install-prompt";
 
 const DISMISS_KEY = "birdie:installPromptDismissedAt";
 const SNOOZE_DAYS = 14;
 
-type BIPEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-function isStandalone() {
-  if (typeof window === "undefined") return false;
-  const mql = window.matchMedia?.("(display-mode: standalone)").matches;
-  // iOS Safari exposes navigator.standalone
-  const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-  return Boolean(mql || iosStandalone);
-}
-
-function isInIframe() {
-  try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
-}
-
-function isIOS() {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  return /iPad|iPhone|iPod/.test(ua) && !(window as Window & { MSStream?: unknown }).MSStream;
-}
-
-function shouldShow() {
-  if (typeof window === "undefined") return false;
-  if (isStandalone()) return false;
-  if (isInIframe()) return false;
-  // Hide on Lovable preview hosts
-  const host = window.location.hostname;
-  if (host.includes("lovable.app") || host.includes("lovableproject.com") || host.includes("localhost")) {
-    return false;
-  }
-  const dismissedAt = localStorage.getItem(DISMISS_KEY);
-  if (dismissedAt) {
-    const days = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
-    if (days < SNOOZE_DAYS) return false;
-  }
-  return true;
-}
-
 export function InstallPrompt() {
-  const [visible, setVisible] = useState(false);
-  const [deferred, setDeferred] = useState<BIPEvent | null>(null);
-  const [ios, setIos] = useState(false);
+  const { canInstall, ios, hasNativePrompt, promptInstall } = useInstallPrompt();
+  const [snoozed, setSnoozed] = useState(true);
 
   useEffect(() => {
-    if (!shouldShow()) return;
-    setIos(isIOS());
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BIPEvent);
-      setVisible(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    // iOS has no event — show after short delay
-    if (isIOS()) {
-      const t = setTimeout(() => setVisible(true), 1500);
-      return () => {
-        clearTimeout(t);
-        window.removeEventListener("beforeinstallprompt", handler);
-      };
+    if (typeof window === "undefined") return;
+    const dismissedAt = window.localStorage.getItem(DISMISS_KEY);
+    if (!dismissedAt) {
+      setSnoozed(false);
+      return;
     }
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    const days = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+    setSnoozed(days < SNOOZE_DAYS);
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    setVisible(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    }
+    setSnoozed(true);
   };
 
   const install = async () => {
-    if (!deferred) return;
-    await deferred.prompt();
-    const { outcome } = await deferred.userChoice;
-    if (outcome === "accepted" || outcome === "dismissed") {
-      dismiss();
-    }
-    setDeferred(null);
+    const outcome = await promptInstall();
+    if (outcome) dismiss();
   };
 
-  if (!visible) return null;
+  if (!canInstall || snoozed) return null;
 
   return (
     <div className="fixed bottom-24 left-0 right-0 z-50 px-4 pointer-events-none">
@@ -116,7 +57,7 @@ export function InstallPrompt() {
                 Asenna sovellus, niin se aukeaa yhdellä napautuksella ja toimii kuin natiivisovellus.
               </p>
             )}
-            {!ios && deferred && (
+            {!ios && hasNativePrompt && (
               <Button
                 onClick={install}
                 size="sm"
