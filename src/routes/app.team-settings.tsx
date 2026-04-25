@@ -17,6 +17,15 @@ export const Route = createFileRoute("/app/team-settings")({
   component: TeamSettings,
 });
 
+// Add N years to an ISO date string ("YYYY-MM-DD") preserving month/day.
+// Falls back to the original string if parsing fails.
+function shiftDateByYears(iso: string, years: number): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  const year = Number(m[1]) + years;
+  return `${String(year).padStart(4, "0")}-${m[2]}-${m[3]}`;
+}
+
 function TeamSettings() {
   const { user } = useAuth();
   const { activeTeam, refresh } = useTeams();
