@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { CloudUpload } from "lucide-react";
-import {
-  flushRoundQueue,
-  getQueuedCount,
-  subscribeToRoundQueue,
-} from "@/lib/round-queue";
+import { flushRoundQueue, getQueuedCount, subscribeToRoundQueue } from "@/lib/round-queue";
 import { useConnectivity } from "@/lib/connectivity";
 
 /**
@@ -26,8 +22,7 @@ export function QueuedRoundsBadge() {
 
   if (count === 0) return null;
 
-  const label =
-    count === 1 ? "1 kierros odottaa" : `${count} kierrosta odottaa`;
+  const label = count === 1 ? "1 kierros odottaa" : `${count} kierrosta odottaa`;
 
   return (
     <button

@@ -1,5 +1,16 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Trophy, Plus, Award, User as UserIcon, Users, Flag, ChevronDown, LogOut, Settings, ScrollText } from "lucide-react";
+import {
+  Trophy,
+  Plus,
+  Award,
+  User as UserIcon,
+  Users,
+  Flag,
+  ChevronDown,
+  LogOut,
+  Settings,
+  ScrollText,
+} from "lucide-react";
 import { useTeams } from "@/lib/team-context";
 import { useAuth } from "@/lib/auth";
 import {
@@ -29,9 +40,19 @@ type TabDef = {
 
 const TABS: TabDef[] = [
   { to: "/app", label: "Tulostaulu", icon: Trophy, exact: true, alsoActiveFor: ["/app/player"] },
-  { to: "/app/hall-of-fame", label: "Legendat", icon: Award, alsoActiveFor: ["/app/legends-admin"] },
+  {
+    to: "/app/hall-of-fame",
+    label: "Legendat",
+    icon: Award,
+    alsoActiveFor: ["/app/legends-admin"],
+  },
   { to: "/app/rules", label: "Säännöt", icon: ScrollText },
-  { to: "/app/profile", label: "Minä", icon: UserIcon, alsoActiveFor: ["/app/teams", "/app/team-settings"] },
+  {
+    to: "/app/profile",
+    label: "Minä",
+    icon: UserIcon,
+    alsoActiveFor: ["/app/teams", "/app/team-settings"],
+  },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -118,9 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 max-w-md w-full mx-auto px-4 pt-4">
-        {children}
-      </main>
+      <main className="flex-1 max-w-md w-full mx-auto px-4 pt-4">{children}</main>
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border">

@@ -59,9 +59,7 @@ export function ConnectivityProvider({ children }: { children: ReactNode }) {
   }, [handleOnline, handleOffline]);
 
   const value = useMemo(() => ({ online, reconnecting }), [online, reconnecting]);
-  return (
-    <ConnectivityContext.Provider value={value}>{children}</ConnectivityContext.Provider>
-  );
+  return <ConnectivityContext.Provider value={value}>{children}</ConnectivityContext.Provider>;
 }
 
 export function useConnectivity() {

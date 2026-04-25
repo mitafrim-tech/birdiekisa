@@ -130,9 +130,7 @@ function removeFromQueue(submissionId: string) {
 }
 
 function updateInQueue(submissionId: string, patch: Partial<QueuedRound>) {
-  const items = readQueue().map((r) =>
-    r.submission_id === submissionId ? { ...r, ...patch } : r,
-  );
+  const items = readQueue().map((r) => (r.submission_id === submissionId ? { ...r, ...patch } : r));
   writeQueue(items);
 }
 
