@@ -173,7 +173,25 @@ function TeamSettings() {
         birdie_count: max,
       });
       if (error) throw error;
-      toast.success("Mestari kruunattu! 🏆");
+
+      // Roll the season forward by one year so new rounds start counting
+      // toward the next season immediately. Admin can fine-tune dates after.
+      const nextStart = shiftDateByYears(activeTeam.season_start, 1);
+      const nextEnd = shiftDateByYears(activeTeam.season_end, 1);
+      const { error: seasonErr } = await supabase
+        .from("teams")
+        .update({ season_start: nextStart, season_end: nextEnd })
+        .eq("id", activeTeam.id);
+      if (seasonErr) {
+        // Champion was already saved — surface a soft warning instead of failing.
+        console.error(seasonErr);
+        toast.warning("Mestari kruunattu, mutta kauden päivitys epäonnistui. Päivitä päivämäärät manuaalisesti.");
+      } else {
+        setSeasonStart(nextStart);
+        setSeasonEnd(nextEnd);
+        await refresh();
+        toast.success("Mestari kruunattu! 🏆 Uusi kausi alkoi.");
+      }
       navigate({ to: "/app/hall-of-fame" });
     } catch (err) {
       toast.error(toUserMessage(err, "Kauden arkistointi epäonnistui"));
