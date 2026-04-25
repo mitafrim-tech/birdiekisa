@@ -139,7 +139,7 @@ function Leaderboard() {
       <div className="rounded-3xl bg-gradient-hero p-6 text-primary-foreground shadow-card relative overflow-hidden">
         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-accent/40 blur-2xl" />
         <div className="relative">
-          <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Season standings</div>
+          <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Kauden tilanne</div>
           <h1 className="font-display text-3xl mt-1">{activeTeam.name}</h1>
           <div className="text-sm opacity-90 mt-1">{seasonLabel}</div>
         </div>
@@ -163,12 +163,22 @@ function Leaderboard() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Trophy}
-          title="No players yet"
-          description="Invite your crew to start the competition."
+          title="Ei vielä pelaajia"
+          description={
+            isAdmin
+              ? "Kutsu kaverit mukaan – kisa alkaa heti kun he liittyvät."
+              : "Tällä tiimillä ei ole vielä pelaajia. Pyydä ylläpitäjää kutsumaan kaverit."
+          }
           action={
-            <Link to="/app/team-settings">
-              <Button className="rounded-xl">Invite players</Button>
-            </Link>
+            isAdmin ? (
+              <Link to="/app/team-settings">
+                <Button className="rounded-xl">Kutsu pelaajat</Button>
+              </Link>
+            ) : (
+              <Link to="/app/log">
+                <Button className="rounded-xl">Kirjaa kierros</Button>
+              </Link>
+            )
           }
         />
       ) : (
