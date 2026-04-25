@@ -36,8 +36,10 @@ export function buildWhatsAppMessage(s: RoundSummary): string {
 
   // Extra stats line — show everything that happened, in rarity order
   const stats: string[] = [];
-  if (s.hole_in_ones > 0) stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
-  if (s.albatrosses > 0) stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
+  if (s.hole_in_ones > 0)
+    stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
+  if (s.albatrosses > 0)
+    stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
   if (s.eagles > 0) stats.push(`${s.eagles} eagle${s.eagles === 1 ? "" : "a"} 🦅`);
   if (s.birdies > 0) stats.push(`${s.birdies} ${pluralBirdie(s.birdies)} 🐦`);
 
@@ -72,6 +74,16 @@ export function buildInviteMessage(teamName: string, inviteUrl: string): string 
   );
 }
 
+/** Body text for the native share sheet — omits the URL because the
+ * share API appends it separately. Including the URL in both fields
+ * causes targets like WhatsApp to show the link twice. */
+function buildInviteShareText(teamName: string): string {
+  return (
+    `Hei! Liity tiimiimme *${teamName}* Birdiekisassa 🏌️‍♂️⛳️\n\n` +
+    `Kirjataan birdiet, eaglet ja holarit yhdessä koko kausi.`
+  );
+}
+
 /**
  * Try the native Web Share API (mobile share sheet incl. WhatsApp,
  * Messages, Mail, etc). Returns true if the share sheet was used,
@@ -79,17 +91,14 @@ export function buildInviteMessage(teamName: string, inviteUrl: string): string 
  * user dismissed). Cancelled shares resolve `false` so the UI can
  * stay quiet rather than show a fallback.
  */
-export async function nativeShareInvite(
-  teamName: string,
-  inviteUrl: string,
-): Promise<boolean> {
+export async function nativeShareInvite(teamName: string, inviteUrl: string): Promise<boolean> {
   if (typeof navigator === "undefined" || !("share" in navigator)) {
     return false;
   }
   try {
     await navigator.share({
       title: `Liity tiimiin ${teamName}`,
-      text: buildInviteMessage(teamName, inviteUrl),
+      text: buildInviteShareText(teamName),
       url: inviteUrl,
     });
     return true;
