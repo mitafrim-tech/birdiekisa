@@ -50,6 +50,11 @@ function isIOS() {
   return /iPad|iPhone|iPod/.test(ua) && !(window as Window & { MSStream?: unknown }).MSStream;
 }
 
+function isAndroid() {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
 /**
  * Centralised install-prompt state.
  * - Tracks the BeforeInstallPromptEvent for Android/Chromium browsers.
@@ -60,6 +65,7 @@ export function useInstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(() => sharedDeferred);
   const [standalone, setStandalone] = useState<boolean>(() => isStandalone());
   const [ios, setIos] = useState(false);
+  const [android, setAndroid] = useState(false);
   // Increments whenever the browser fires a fresh `beforeinstallprompt`,
   // signalling that the device is once again installable (e.g. after an
   // uninstall). Consumers can watch this to clear their own snooze state.
@@ -68,6 +74,7 @@ export function useInstallPrompt() {
   useEffect(() => {
     setStandalone(isStandalone());
     setIos(isIOS());
+    setAndroid(isAndroid());
     setDeferred(sharedDeferred);
     setFreshPromptTick(sharedFreshPromptTick);
 
@@ -129,12 +136,13 @@ export function useInstallPrompt() {
     return outcome;
   }, [deferred]);
 
-  const canInstall = !standalone && !isPreviewContext() && (Boolean(deferred) || ios);
+  const canInstall = !standalone && !isPreviewContext() && (Boolean(deferred) || ios || android);
 
   return {
     canInstall,
     standalone,
     ios,
+    android,
     hasNativePrompt: Boolean(deferred),
     freshPromptTick,
     promptInstall,
