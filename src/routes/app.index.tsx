@@ -70,7 +70,7 @@ function Leaderboard() {
       const p = profileMap.get(m.user_id);
       return {
         user_id: m.user_id,
-        nickname: p?.nickname ?? "Player",
+        nickname: p?.nickname ?? "Pelaaja",
         avatar_url: p?.avatar_url ?? null,
         ...t,
       };
@@ -124,7 +124,7 @@ function Leaderboard() {
 
   const seasonLabel =
     activeTeam.season_start && activeTeam.season_end
-      ? `${format(new Date(activeTeam.season_start), "MMM d")} – ${format(new Date(activeTeam.season_end), "MMM d, yyyy")}`
+      ? `${format(new Date(activeTeam.season_start), "d.M.")} – ${format(new Date(activeTeam.season_end), "d.M.yyyy")}`
       : "Kautta ei ole asetettu";
 
   const isAdmin = !!(user && user.id === activeTeam.admin_id);
@@ -139,7 +139,7 @@ function Leaderboard() {
       <div className="rounded-3xl bg-gradient-hero p-6 text-primary-foreground shadow-card relative overflow-hidden">
         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-accent/40 blur-2xl" />
         <div className="relative">
-          <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Season standings</div>
+          <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Kauden tilanne</div>
           <h1 className="font-display text-3xl mt-1">{activeTeam.name}</h1>
           <div className="text-sm opacity-90 mt-1">{seasonLabel}</div>
         </div>
@@ -163,12 +163,22 @@ function Leaderboard() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Trophy}
-          title="No players yet"
-          description="Invite your crew to start the competition."
+          title="Ei vielä pelaajia"
+          description={
+            isAdmin
+              ? "Kutsu kaverit mukaan – kisa alkaa heti kun he liittyvät."
+              : "Tällä tiimillä ei ole vielä pelaajia. Pyydä ylläpitäjää kutsumaan kaverit."
+          }
           action={
-            <Link to="/app/team-settings">
-              <Button className="rounded-xl">Invite players</Button>
-            </Link>
+            isAdmin ? (
+              <Link to="/app/team-settings">
+                <Button className="rounded-xl">Kutsu pelaajat</Button>
+              </Link>
+            ) : (
+              <Link to="/app/log">
+                <Button className="rounded-xl">Kirjaa kierros</Button>
+              </Link>
+            )
           }
         />
       ) : (
@@ -220,7 +230,7 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
               ? "text-foreground/70"
               : "text-muted-foreground/60"
           }`}
-          aria-label={`Rank ${rank}`}
+          aria-label={`Sija ${rank}`}
         >
           {rank}
         </div>
@@ -244,7 +254,7 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
             <div className="flex items-baseline gap-1 shrink-0 min-w-[68px] justify-end">
               <span className="font-display text-2xl leading-none tabular-nums">{row.birdies}</span>
               <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">
-                birdies
+                birdiet
               </span>
             </div>
           </div>
