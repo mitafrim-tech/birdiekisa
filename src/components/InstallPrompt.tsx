@@ -9,9 +9,10 @@ const INSTALL_TOAST_KEY = "birdie:installToastShown";
 const SNOOZE_DAYS = 14;
 
 export function InstallPrompt() {
-  const { canInstall, ios, hasNativePrompt, promptInstall, standalone, freshPromptTick } =
+  const { canInstall, ios, android, hasNativePrompt, promptInstall, standalone, freshPromptTick } =
     useInstallPrompt();
   const [snoozed, setSnoozed] = useState(true);
+  const [manualOpen, setManualOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -77,10 +78,32 @@ export function InstallPrompt() {
                 <span className="font-semibold text-foreground">"Lisää Koti-valikkoon"</span>{" "}
                 <Plus className="inline w-3.5 h-3.5 align-text-bottom" />.
               </p>
+            ) : android && !hasNativePrompt ? (
+              <p className="text-xs text-muted-foreground leading-snug">
+                Asenna selaimen valikosta, niin Birdie aukeaa jatkossa suoraan aloitusnäytöltä.
+              </p>
             ) : (
               <p className="text-xs text-muted-foreground leading-snug">
                 Asenna sovellus, niin se aukeaa yhdellä napautuksella ja toimii kuin natiivisovellus.
               </p>
+            )}
+            {android && !hasNativePrompt && (
+              <>
+                <Button
+                  onClick={() => setManualOpen((open) => !open)}
+                  size="sm"
+                  className="mt-3 h-9 rounded-lg font-display tracking-wide"
+                >
+                  Näytä ohjeet
+                </Button>
+                {manualOpen && (
+                  <ol className="mt-3 space-y-1.5 text-xs text-muted-foreground leading-snug list-decimal list-inside">
+                    <li>Avaa selaimen valikko oikeasta yläkulmasta.</li>
+                    <li>Valitse "Asenna sovellus" tai "Lisää aloitusnäytölle".</li>
+                    <li>Vahvista asennus.</li>
+                  </ol>
+                )}
+              </>
             )}
             {!ios && hasNativePrompt && (
               <Button
