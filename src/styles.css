@@ -100,8 +100,18 @@
   --gradient-hero: linear-gradient(135deg, oklch(0.62 0.20 150) 0%, oklch(0.78 0.13 230) 100%);
   --gradient-sunset: linear-gradient(135deg, oklch(0.86 0.18 95) 0%, oklch(0.65 0.26 20) 100%);
   --gradient-card: linear-gradient(160deg, oklch(1 0 0) 0%, oklch(0.97 0.02 150) 100%);
-  --shadow-card: 0 10px 30px -12px oklch(0.18 0.04 160 / 0.18);
-  --shadow-bold: 0 8px 0 0 oklch(0.18 0.04 160);
+  /* Soft elevation system — subtle, premium, brand-tinted.
+     The old chunky offset-slab look was retired in favor of a layered
+     blurred shadow tinted with the deep night-green so cards & buttons
+     feel lifted, not heavy. `--shadow-bold` is intentionally kept so
+     existing `shadow-bold` classes pick up the new look without churn. */
+  --shadow-card: 0 8px 24px -14px oklch(0.18 0.04 160 / 0.18);
+  --shadow-bold:
+    0 1px 2px 0 oklch(0.18 0.04 160 / 0.10),
+    0 6px 16px -8px oklch(0.18 0.04 160 / 0.22);
+  --shadow-soft:
+    0 1px 2px 0 oklch(0.18 0.04 160 / 0.06),
+    0 4px 12px -6px oklch(0.18 0.04 160 / 0.12);
   --shadow-glow: 0 0 40px -8px oklch(0.62 0.20 150 / 0.55);
 
   --chart-1: oklch(0.646 0.222 41.116);
@@ -178,6 +188,7 @@
   .bg-gradient-card { background-image: var(--gradient-card); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-bold { box-shadow: var(--shadow-bold); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .text-balance { text-wrap: balance; }
 }
