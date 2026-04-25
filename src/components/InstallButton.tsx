@@ -37,13 +37,13 @@ export function InstallButton() {
       <Button
         type="button"
         size="sm"
-        variant="ghost"
+        variant="outline"
         onClick={handleClick}
         aria-label="Asenna sovellus"
-        className="h-9 px-2 gap-1.5 rounded-lg text-xs font-display uppercase tracking-wider text-muted-foreground hover:text-foreground"
+        className="h-9 px-3 gap-1.5 rounded-full text-xs font-display uppercase tracking-wider border-primary/30 text-primary hover:bg-primary/10 hover:text-primary shadow-soft"
       >
         <Download className="w-4 h-4" strokeWidth={2.5} />
-        <span className="hidden sm:inline">Asenna</span>
+        <span>Asenna</span>
       </Button>
 
       <Dialog open={iosOpen} onOpenChange={setIosOpen}>
