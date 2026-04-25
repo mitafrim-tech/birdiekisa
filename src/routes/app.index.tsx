@@ -124,7 +124,7 @@ function Leaderboard() {
 
   const seasonLabel =
     activeTeam.season_start && activeTeam.season_end
-      ? `${format(new Date(activeTeam.season_start), "MMM d")} – ${format(new Date(activeTeam.season_end), "MMM d, yyyy")}`
+      ? `${format(new Date(activeTeam.season_start), "d.M.")} – ${format(new Date(activeTeam.season_end), "d.M.yyyy")}`
       : "Kautta ei ole asetettu";
 
   const isAdmin = !!(user && user.id === activeTeam.admin_id);
