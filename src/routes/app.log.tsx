@@ -13,6 +13,8 @@ import { CelebrationModal, type CelebrationKind } from "@/components/Celebration
 import { CoursePicker } from "@/components/CoursePicker";
 import { buildWhatsAppMessage, openWhatsAppShare } from "@/lib/share";
 import { toUserMessage } from "@/lib/errors";
+import { enqueueRound, flushRoundQueue, type ShotPayload } from "@/lib/round-queue";
+import { useConnectivity } from "@/lib/connectivity";
 
 export const Route = createFileRoute("/app/log")({
   component: LogRound,
@@ -27,6 +29,7 @@ function LogRound() {
   const { user } = useAuth();
   const { activeTeam } = useTeams();
   const navigate = useNavigate();
+  const { online } = useConnectivity();
 
   const [course, setCourse] = useState("");
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
@@ -43,6 +46,7 @@ function LogRound() {
   const [albatrossDetails, setAlbatrossDetails] = useState<ShotDetail[]>([]);
   const [hioDetails, setHioDetails] = useState<ShotDetail[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [savedOffline, setSavedOffline] = useState(false);
 
   // Post-save state
   const [celebration, setCelebration] = useState<CelebrationKind | null>(null);
@@ -108,70 +112,56 @@ function LogRound() {
     if (!user || !activeTeam) return;
     setSubmitting(true);
     try {
-      const { data: round, error } = await supabase
-        .from("rounds")
-        .insert({
-          team_id: activeTeam.id,
-          user_id: user.id,
-          course_name: course.trim(),
-          played_on: date,
-          holes_played: finalHoles,
-          birdies,
-          eagles,
-          albatrosses,
-          hole_in_ones: holeInOnes,
-        })
-        .select("id")
-        .single();
-      if (error || !round) throw error ?? new Error("Kierroksen tallennus epäonnistui");
-
-      // Ensure course is in team courses (best-effort, ignore unique violation)
-      await supabase
-        .from("team_courses")
-        .insert({ team_id: activeTeam.id, name: course.trim(), added_by: user.id, is_official: false })
-        .then(() => undefined, () => undefined);
-
-      const shots: Array<{
-        round_id: string;
-        team_id: string;
-        user_id: string;
-        shot_type: "eagle" | "albatross" | "hole_in_one";
-        course_name: string;
-        hole_number: number | null;
-        event_name: string | null;
-        played_on: string;
-      }> = [];
-      const pushShots = (list: ShotDetail[], type: "eagle" | "albatross" | "hole_in_one") => {
+      const shots: ShotPayload[] = [];
+      const pushShots = (list: ShotDetail[], type: ShotPayload["shot_type"]) => {
         list.forEach((s) => {
           shots.push({
-            round_id: round.id,
-            team_id: activeTeam.id,
-            user_id: user.id,
             shot_type: type,
             course_name: s.course_name.trim() || course.trim(),
             hole_number: s.hole_number ? Number(s.hole_number) : null,
             event_name: s.event_name.trim() || null,
-            played_on: date,
           });
         });
       };
       pushShots(eagleDetails, "eagle");
       pushShots(albatrossDetails, "albatross");
       pushShots(hioDetails, "hole_in_one");
-      if (shots.length > 0) {
-        const { error: shotsErr } = await supabase.from("notable_shots").insert(shots);
-        if (shotsErr) console.error(shotsErr);
-      }
+
+      // Always enqueue first — that way the round survives a sudden network
+      // drop, a tab close, or an app crash. The queue carries a stable
+      // submission_id so flushing it can never create a duplicate.
+      enqueueRound({
+        user_id: user.id,
+        team_id: activeTeam.id,
+        course_name: course.trim(),
+        played_on: date,
+        holes_played: finalHoles,
+        birdies,
+        eagles,
+        albatrosses,
+        hole_in_ones: holeInOnes,
+        shots,
+      });
 
       // Build celebration queue: rarest first
-      const queue: CelebrationKind[] = [];
-      for (let i = 0; i < holeInOnes; i++) queue.push("hole_in_one");
-      for (let i = 0; i < albatrosses; i++) queue.push("albatross");
-      for (let i = 0; i < eagles; i++) queue.push("eagle");
+      const celebrations: CelebrationKind[] = [];
+      for (let i = 0; i < holeInOnes; i++) celebrations.push("hole_in_one");
+      for (let i = 0; i < albatrosses; i++) celebrations.push("albatross");
+      for (let i = 0; i < eagles; i++) celebrations.push("eagle");
 
-      if (queue.length > 0) {
-        setCelebration(queue[0]);
-        setCelebrationQueue(queue.slice(1));
+      // Try to flush immediately. If the device is offline this is a no-op
+      // and the round stays queued; the drainer will retry on `online`.
+      const remaining = await flushRoundQueue();
+      const offlineSave = !online || remaining > 0;
+      setSavedOffline(offlineSave);
+
+      if (celebrations.length > 0) {
+        setCelebration(celebrations[0]);
+        setCelebrationQueue(celebrations.slice(1));
+      } else if (offlineSave) {
+        toast.success("Tallennettu offline-tilassa", {
+          description: "Lähetetään automaattisesti kun yhteys palaa.",
+        });
       } else {
         toast.success("Kierros kirjattu!");
       }
@@ -223,8 +213,15 @@ function LogRound() {
             <div className="w-14 h-14 mx-auto rounded-full bg-primary-foreground/20 flex items-center justify-center mb-3">
               <Check className="w-7 h-7" strokeWidth={3} />
             </div>
-            <h1 className="font-display text-3xl">Kierros kirjattu!</h1>
+            <h1 className="font-display text-3xl">
+              {savedOffline ? "Tallennettu offline" : "Kierros kirjattu!"}
+            </h1>
             <p className="text-sm opacity-90 mt-1">{course} · {format(new Date(date), "d.M.yyyy")}</p>
+            {savedOffline && (
+              <p className="text-xs opacity-90 mt-2">
+                Lähetetään automaattisesti kun yhteys palaa. Älä lähetä uudelleen — duplikaatteja ei synny.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-4 gap-2">
