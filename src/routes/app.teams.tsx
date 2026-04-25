@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Flag, Plus, Users } from "lucide-react";
+import { Camera, Flag, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { toUserMessage } from "@/lib/errors";
 
@@ -26,7 +26,6 @@ function TeamsPage() {
   const [seasonStart, setSeasonStart] = useState("");
   const [seasonEnd, setSeasonEnd] = useState("");
   const [creating, setCreating] = useState(false);
-  const [joinCode, setJoinCode] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const create = async (e: React.FormEvent) => {
@@ -60,21 +59,6 @@ function TeamsPage() {
     } finally {
       setCreating(false);
     }
-  };
-
-  const joinByCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = joinCode.trim().toLowerCase();
-    if (!code) return;
-    const { data, error } = await supabase.rpc("join_team_by_code", { _code: code });
-    if (error) {
-      toast.error(toUserMessage(error, "Liittyminen epäonnistui"));
-      return;
-    }
-    await refresh();
-    if (typeof data === "string") setActiveTeamId(data);
-    toast.success("Liityit tiimiin");
-    navigate({ to: "/app" });
   };
 
   const handleLogo = (f: File | null) => {
