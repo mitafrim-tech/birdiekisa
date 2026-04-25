@@ -59,3 +59,43 @@ export function openWhatsAppShare(message: string) {
   const url = `https://wa.me/?text=${encoded}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
+
+/* ============================================================
+ * Team invite share helpers
+ * ============================================================ */
+
+export function buildInviteMessage(teamName: string, inviteUrl: string): string {
+  return (
+    `Hei! Liity tiimiimme *${teamName}* Birdiekisassa 🏌️‍♂️⛳️\n\n` +
+    `Kirjataan birdiet, eaglet ja holarit yhdessä koko kausi.\n\n` +
+    `Liity tästä: ${inviteUrl}`
+  );
+}
+
+/**
+ * Try the native Web Share API (mobile share sheet incl. WhatsApp,
+ * Messages, Mail, etc). Returns true if the share sheet was used,
+ * false if the caller should fall back (desktop, unsupported, or
+ * user dismissed). Cancelled shares resolve `false` so the UI can
+ * stay quiet rather than show a fallback.
+ */
+export async function nativeShareInvite(
+  teamName: string,
+  inviteUrl: string,
+): Promise<boolean> {
+  if (typeof navigator === "undefined" || !("share" in navigator)) {
+    return false;
+  }
+  try {
+    await navigator.share({
+      title: `Liity tiimiin ${teamName}`,
+      text: buildInviteMessage(teamName, inviteUrl),
+      url: inviteUrl,
+    });
+    return true;
+  } catch (err) {
+    // AbortError = user cancelled the sheet, treat as success/no-op.
+    if (err instanceof DOMException && err.name === "AbortError") return true;
+    return false;
+  }
+}
