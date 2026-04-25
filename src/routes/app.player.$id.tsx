@@ -109,7 +109,7 @@ function PlayerProfile() {
                 <div className="min-w-0">
                   <div className="font-display text-base truncate">{r.course_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {format(new Date(r.played_on), "MMM d, yyyy")} • {r.holes_played} reikää
+                    {format(new Date(r.played_on), "d.M.yyyy")} • {r.holes_played} reikää
                   </div>
                 </div>
                 <div className="text-right">
