@@ -100,24 +100,8 @@ function TeamSettings() {
     })();
   }, [activeTeam]);
 
-  useEffect(() => {
-    if (!activeTeam || !user || user.id !== activeTeam.admin_id) {
-      setJoinCode(null);
-      return;
-    }
-    supabase
-      .rpc("get_team_join_code", { _team_id: activeTeam.id })
-      .then(({ data }) => {
-        if (typeof data === "string") setJoinCode(data);
-      });
-  }, [activeTeam, user]);
-
   if (!activeTeam) return null;
   if (user && user.id !== activeTeam.admin_id) return null;
-
-  const inviteUrl = typeof window !== "undefined" && joinCode
-    ? `${window.location.origin}/join/${joinCode}`
-    : "";
 
   const handleLogo = (f: File | null) => {
     setLogoFile(f);
@@ -148,24 +132,6 @@ function TeamSettings() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const copyInvite = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      toast.success("Kutsulinkki kopioitu");
-    } catch {
-      toast.error("Kopiointi epäonnistui");
-    }
-  };
-
-  const shareInviteWhatsApp = () => {
-    const message =
-      `Hei! Liity tiimiimme *${activeTeam.name}* Birdiekisassa 🏌️‍♂️⛳️\n\n` +
-      `Kirjataan birdiet, eaglet ja holarit yhdessä koko kausi.\n\n` +
-      `Liity tästä: ${inviteUrl}`;
-    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
   };
 
   const archiveSeason = async () => {
