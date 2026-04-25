@@ -230,7 +230,7 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
               ? "text-foreground/70"
               : "text-muted-foreground/60"
           }`}
-          aria-label={`Rank ${rank}`}
+          aria-label={`Sija ${rank}`}
         >
           {rank}
         </div>
@@ -254,7 +254,7 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
             <div className="flex items-baseline gap-1 shrink-0 min-w-[68px] justify-end">
               <span className="font-display text-2xl leading-none tabular-nums">{row.birdies}</span>
               <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">
-                birdies
+                birdiet
               </span>
             </div>
           </div>
