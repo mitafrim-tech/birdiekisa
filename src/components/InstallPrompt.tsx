@@ -74,7 +74,8 @@ export function InstallPrompt() {
             </div>
             {ios ? (
               <p className="text-xs text-muted-foreground leading-snug">
-                Paina <Share className="inline w-3.5 h-3.5 align-text-bottom" /> Jaa-painiketta ja valitse{" "}
+                Paina <Share className="inline w-3.5 h-3.5 align-text-bottom" /> Jaa-painiketta ja
+                valitse{" "}
                 <span className="font-semibold text-foreground">"Lisää Koti-valikkoon"</span>{" "}
                 <Plus className="inline w-3.5 h-3.5 align-text-bottom" />.
               </p>
@@ -84,7 +85,8 @@ export function InstallPrompt() {
               </p>
             ) : (
               <p className="text-xs text-muted-foreground leading-snug">
-                Asenna sovellus, niin se aukeaa yhdellä napautuksella ja toimii kuin natiivisovellus.
+                Asenna sovellus, niin se aukeaa yhdellä napautuksella ja toimii kuin
+                natiivisovellus.
               </p>
             )}
             {android && !hasNativePrompt && (
