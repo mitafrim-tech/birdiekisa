@@ -323,25 +323,9 @@ function TeamSettings() {
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimin asetukset</h1>
 
-      {/* Invite */}
-      <div className="rounded-3xl bg-gradient-hero p-5 text-primary-foreground shadow-card">
-        <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Jaa kutsu</div>
-        <div className="font-display text-lg mt-1 mb-3">Kuka tahansa, jolla on tämä linkki, voi liittyä</div>
-        <div className="flex gap-2">
-          <div className="flex-1 bg-primary-foreground/15 rounded-xl px-3 py-2 text-sm truncate">
-            {inviteUrl}
-          </div>
-          <Button onClick={copyInvite} variant="secondary" className="rounded-xl">
-            <Copy className="w-4 h-4 mr-1" /> Kopioi
-          </Button>
-        </div>
-        <Button
-          onClick={shareInviteWhatsApp}
-          className="w-full mt-3 h-12 rounded-xl font-display bg-[#25D366] hover:bg-[#20bd5a] text-white"
-        >
-          <Share2 className="w-4 h-4 mr-2" /> Jaa WhatsAppiin
-        </Button>
-      </div>
+      {/* Invite — share link with native share sheet on mobile,
+          WhatsApp / copy fallback elsewhere. */}
+      <InviteCard teamId={activeTeam.id} teamName={activeTeam.name} variant="hero" />
 
       {/* Members management */}
       <div className="bg-card rounded-3xl p-5 shadow-card">
