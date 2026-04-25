@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadUserFile } from "@/lib/upload";
-import { Camera, Copy, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Share2, Users, UserMinus, ShieldCheck, User as UserIcon } from "lucide-react";
+import { Camera, Crown, Flag, Star, Trash2, Plus, Pencil, Check, X, Users, UserMinus, ShieldCheck, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { toUserMessage } from "@/lib/errors";
+import { InviteCard } from "@/components/InviteCard";
 
 export const Route = createFileRoute("/app/team-settings")({
   component: TeamSettings,
@@ -33,7 +34,6 @@ function TeamSettings() {
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [editingCourseName, setEditingCourseName] = useState("");
-  const [joinCode, setJoinCode] = useState<string | null>(null);
 
   type Member = {
     user_id: string;
