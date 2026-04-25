@@ -31,7 +31,8 @@ function isPreviewContext() {
 function isStandalone() {
   if (typeof window === "undefined") return false;
   const mql = window.matchMedia?.("(display-mode: standalone)").matches;
-  const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const iosStandalone =
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
   return Boolean(mql || iosStandalone);
 }
 
