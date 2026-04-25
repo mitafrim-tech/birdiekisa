@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,62 +95,47 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
   }, [kind]);
 
   return (
-    <AnimatePresence>
+    <>
       {kind && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/85 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/85 backdrop-blur-md animate-in fade-in duration-200"
           onClick={onClose}
         >
-          <motion.div
-            initial={{ scale: 0.5, rotate: -8, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", damping: 14, stiffness: 180 }}
-            className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden`}
+          <div
+            className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden animate-in zoom-in-50 fade-in duration-500 fill-mode-both`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Animated background trophy */}
+            {/* Background trophy */}
             <Trophy className="absolute -right-12 -bottom-12 w-56 h-56 text-night/5 rotate-12" />
 
-            <motion.div
-              initial={{ y: -20, scale: 0 }}
-              animate={{ y: 0, scale: 1 }}
-              transition={{ delay: 0.15, type: "spring", damping: 8, stiffness: 200 }}
-              className="text-8xl mb-4 leading-none drop-shadow-lg"
+            <div
+              className="text-8xl mb-4 leading-none drop-shadow-lg animate-in zoom-in-0 fade-in duration-500 fill-mode-both"
+              style={{ animationDelay: "150ms" }}
             >
               {CONFIG[kind].emoji}
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="font-display text-5xl tracking-tight mb-1 text-night"
+            <div
+              className="font-display text-5xl tracking-tight mb-1 text-night animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
+              style={{ animationDelay: "350ms" }}
             >
               {CONFIG[kind].title}
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55 }}
-              className="text-xs uppercase tracking-[0.3em] font-bold opacity-70 mb-6"
+            <div
+              className="text-xs uppercase tracking-[0.3em] font-bold opacity-70 mb-6 animate-in fade-in duration-500 fill-mode-both"
+              style={{ animationDelay: "550ms" }}
             >
               {CONFIG[kind].subtitle}
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="bg-night/15 backdrop-blur rounded-2xl p-4 mb-6"
+            <div
+              className="bg-night/15 backdrop-blur rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
+              style={{ animationDelay: "700ms" }}
             >
               <div className="font-display text-2xl leading-tight">{playerName}</div>
               <div className="text-sm opacity-80 mt-1">{courseName}</div>
-            </motion.div>
+            </div>
 
             <Button
               onClick={onClose}
@@ -159,9 +143,9 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
             >
               Legendaa! →
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
