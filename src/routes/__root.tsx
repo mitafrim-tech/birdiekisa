@@ -4,6 +4,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { TeamProvider } from "@/lib/team-context";
 import { Toaster } from "@/components/ui/sonner";
+import { useInstallPrompt } from "@/hooks/use-install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -85,8 +86,14 @@ function RootComponent() {
     <AuthProvider>
       <TeamProvider>
         <Outlet />
+        <InstallPromptEventBridge />
         <Toaster />
       </TeamProvider>
     </AuthProvider>
   );
+}
+
+function InstallPromptEventBridge() {
+  useInstallPrompt();
+  return null;
 }
