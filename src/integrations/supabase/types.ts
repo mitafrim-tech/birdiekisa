@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       champions: {
         Row: {
           birdie_count: number
@@ -216,6 +237,44 @@ export type Database = {
           },
         ]
       }
+      super_admin_actions: {
+        Row: {
+          action_type: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          payload: Json | null
+          target_team_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          target_team_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          target_team_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "super_admin_actions_target_team_id_fkey"
+            columns: ["target_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_courses: {
         Row: {
           added_by: string
@@ -255,18 +314,21 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          role: Database["public"]["Enums"]["team_member_role"]
           team_id: string
           user_id: string
         }
         Insert: {
           id?: string
           joined_at?: string
+          role?: Database["public"]["Enums"]["team_member_role"]
           team_id: string
           user_id: string
         }
         Update: {
           id?: string
           joined_at?: string
+          role?: Database["public"]["Enums"]["team_member_role"]
           team_id?: string
           user_id?: string
         }
@@ -367,10 +429,10 @@ export type Database = {
         }[]
       }
       get_team_join_code: { Args: { _team_id: string }; Returns: string }
-      is_team_admin: {
-        Args: { _team_id: string; _user_id: string }
-        Returns: boolean
-      }
+      is_super_admin: { Args: never; Returns: boolean }
+      is_team_admin:
+        | { Args: { _team_id: string; _user_id: string }; Returns: boolean }
+        | { Args: { team_uuid: string }; Returns: boolean }
       is_team_member: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
@@ -393,6 +455,7 @@ export type Database = {
     }
     Enums: {
       shot_type: "eagle" | "albatross" | "hole_in_one"
+      team_member_role: "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -521,6 +584,7 @@ export const Constants = {
   public: {
     Enums: {
       shot_type: ["eagle", "albatross", "hole_in_one"],
+      team_member_role: ["admin", "member"],
     },
   },
 } as const
