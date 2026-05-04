@@ -91,7 +91,15 @@ function safeRandomUUID(): string {
     return crypto.randomUUID();
   }
   // Fallback for very old browsers — sufficient for dedupe purposes.
-  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`.padEnd(32, "0").slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+function deriveShotSubmissionId(roundSubmissionId: string, index: number): string {
+  const hex = roundSubmissionId.replace(/-/g, "");
+  if (!/^[0-9a-f]{32}$/i.test(hex)) return safeRandomUUID();
+  const suffix = (index + 1).toString(16).padStart(12, "0").slice(-12);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${suffix}`;
 }
 
 function readQueue(): QueuedRound[] {
@@ -284,7 +292,7 @@ export async function uploadQueuedRound(round: QueuedRound): Promise<boolean> {
       event_name: s.event_name,
       played_on: round.played_on,
       // Per-shot dedupe id derived from the parent submission_id.
-      submission_id: `${round.submission_id}-${idx}`,
+      submission_id: deriveShotSubmissionId(round.submission_id, idx),
     }));
     let shotsErr: { code?: string; message: string } | null = null;
     try {
