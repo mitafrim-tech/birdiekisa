@@ -185,7 +185,7 @@ function updateInQueue(submissionId: string, patch: Partial<QueuedRound>) {
  * succeeded (or was already on the server, treated as success thanks to the
  * unique-index dedupe), `false` if it should stay in the queue.
  */
-async function flushOne(round: QueuedRound): Promise<boolean> {
+export async function uploadQueuedRound(round: QueuedRound): Promise<boolean> {
   // Step 1: insert the round itself. The unique index on
   // (user_id, submission_id) means a retry after a network blip won't
   // create a duplicate — Postgres will raise 23505 instead.
@@ -225,12 +225,16 @@ async function flushOne(round: QueuedRound): Promise<boolean> {
     // Unique violation = the round was already inserted by an earlier
     // attempt that we never confirmed. Look it up and continue with shots.
     if (error.code === "23505") {
-      const { data: existing } = await supabase
-        .from("rounds")
-        .select("id")
-        .eq("user_id", round.user_id)
-        .eq("submission_id", round.submission_id)
-        .maybeSingle();
+      const { data: existing } = await withTimeout(
+        supabase
+          .from("rounds")
+          .select("id")
+          .eq("user_id", round.user_id)
+          .eq("submission_id", round.submission_id)
+          .maybeSingle(),
+        CALL_TIMEOUT_MS,
+        "rounds.lookup-existing",
+      );
       if (existing?.id) {
         roundId = existing.id;
       } else {
@@ -295,21 +299,26 @@ async function flushOne(round: QueuedRound): Promise<boolean> {
   }
 
   // Step 3: best-effort team_courses upsert (we don't care if this fails).
-  await supabase
-    .from("team_courses")
-    .insert({
-      team_id: round.team_id,
-      name: round.course_name,
-      added_by: round.user_id,
-      is_official: false,
-    })
-    .then(
-      () => undefined,
-      () => undefined,
-    );
+  await withTimeout(
+    supabase
+      .from("team_courses")
+      .upsert(
+        {
+          team_id: round.team_id,
+          name: round.course_name,
+          added_by: round.user_id,
+          is_official: false,
+        },
+        { onConflict: "team_id,name", ignoreDuplicates: true },
+      ),
+    CALL_TIMEOUT_MS,
+    "team_courses.upsert",
+  ).then(
+    () => undefined,
+    () => undefined,
+  );
 
-  removeFromQueue(round.submission_id);
-  log("flushed round", { submission_id: round.submission_id });
+  log("uploaded round", { submission_id: round.submission_id });
   return true;
 }
 
@@ -370,12 +379,12 @@ export async function flushRoundQueue(): Promise<number> {
         removeFromQueue(round.submission_id);
         continue;
       }
-      const ok = await flushOne(round);
+      const ok = await uploadQueuedRound(round);
       // Don't abort the whole queue on one failure — a single poison item
       // would block every other queued round behind it. Keep going; failed
       // items stay queued (with their attempts counter bumped) and get
       // dropped once they hit MAX_ATTEMPTS.
-      if (!ok) continue;
+      if (ok) removeFromQueue(round.submission_id);
     }
     const remaining = getQueuedCount();
     log("flush done", { remaining });
