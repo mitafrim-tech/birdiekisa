@@ -27,6 +27,37 @@ const NOTIFY_EVENT = "birdie:round-queue:changed";
  */
 const MAX_ATTEMPTS = 10;
 
+/**
+ * Hard ceiling on how long a single flush pass may run. If a Supabase call
+ * hangs (dead-zone handoff: request neither resolves nor rejects), we still
+ * want the `flushing` lock to release so the next trigger can try again.
+ */
+const FLUSH_TIMEOUT_MS = 20_000;
+/** Per-call timeout inside flushOne — avoids a single hung insert wedging the loop. */
+const CALL_TIMEOUT_MS = 10_000;
+
+const log = (...args: unknown[]) => {
+  // Tagged so it's easy to filter in the console.
+  // eslint-disable-next-line no-console
+  console.info("[round-queue]", ...args);
+};
+
+function withTimeout<T>(p: PromiseLike<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`timeout: ${label} after ${ms}ms`)), ms);
+    Promise.resolve(p).then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
 export type ShotPayload = {
   shot_type: "eagle" | "albatross" | "hole_in_one";
   course_name: string;
@@ -158,26 +189,39 @@ async function flushOne(round: QueuedRound): Promise<boolean> {
   // Step 1: insert the round itself. The unique index on
   // (user_id, submission_id) means a retry after a network blip won't
   // create a duplicate — Postgres will raise 23505 instead.
-  const { data, error } = await supabase
-    .from("rounds")
-    .insert({
-      team_id: round.team_id,
-      user_id: round.user_id,
-      course_name: round.course_name,
-      played_on: round.played_on,
-      holes_played: round.holes_played,
-      birdies: round.birdies,
-      eagles: round.eagles,
-      albatrosses: round.albatrosses,
-      hole_in_ones: round.hole_in_ones,
-      submission_id: round.submission_id,
-    })
-    .select("id")
-    .single();
+  let data: { id: string } | null = null;
+  let error: { code?: string; message: string } | null = null;
+  try {
+    const res = await withTimeout(
+      supabase
+        .from("rounds")
+        .insert({
+          team_id: round.team_id,
+          user_id: round.user_id,
+          course_name: round.course_name,
+          played_on: round.played_on,
+          holes_played: round.holes_played,
+          birdies: round.birdies,
+          eagles: round.eagles,
+          albatrosses: round.albatrosses,
+          hole_in_ones: round.hole_in_ones,
+          submission_id: round.submission_id,
+        })
+        .select("id")
+        .single(),
+      CALL_TIMEOUT_MS,
+      "rounds.insert",
+    );
+    data = (res.data as { id: string } | null) ?? null;
+    error = res.error as { code?: string; message: string } | null;
+  } catch (e) {
+    error = { message: e instanceof Error ? e.message : String(e) };
+  }
 
   let roundId = data?.id;
 
   if (error) {
+    log("rounds.insert failed", { submission_id: round.submission_id, error });
     // Unique violation = the round was already inserted by an earlier
     // attempt that we never confirmed. Look it up and continue with shots.
     if (error.code === "23505") {
@@ -228,9 +272,20 @@ async function flushOne(round: QueuedRound): Promise<boolean> {
       // Per-shot dedupe id derived from the parent submission_id.
       submission_id: `${round.submission_id}-${idx}`,
     }));
-    const { error: shotsErr } = await supabase.from("notable_shots").insert(shotRows);
+    let shotsErr: { code?: string; message: string } | null = null;
+    try {
+      const res = await withTimeout(
+        supabase.from("notable_shots").insert(shotRows),
+        CALL_TIMEOUT_MS,
+        "notable_shots.insert",
+      );
+      shotsErr = res.error as { code?: string; message: string } | null;
+    } catch (e) {
+      shotsErr = { message: e instanceof Error ? e.message : String(e) };
+    }
     // Ignore unique-violations on shots — same dedupe story.
     if (shotsErr && shotsErr.code !== "23505") {
+      log("notable_shots.insert failed", { submission_id: round.submission_id, error: shotsErr });
       updateInQueue(round.submission_id, {
         attempts: round.attempts + 1,
         last_error: shotsErr.message,
@@ -254,10 +309,12 @@ async function flushOne(round: QueuedRound): Promise<boolean> {
     );
 
   removeFromQueue(round.submission_id);
+  log("flushed round", { submission_id: round.submission_id });
   return true;
 }
 
 let flushing = false;
+let flushingSince = 0;
 
 /**
  * Try to push everything in the queue to the server. Safe to call frequently
@@ -265,23 +322,51 @@ let flushing = false;
  * after the attempt.
  */
 export async function flushRoundQueue(): Promise<number> {
-  if (flushing) return getQueuedCount();
-  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+  // Self-heal a wedged lock: if a previous flush hung past the timeout, let
+  // the next caller through instead of being silently blocked forever.
+  if (flushing && Date.now() - flushingSince < FLUSH_TIMEOUT_MS) {
+    log("flush already in progress, skipping");
     return getQueuedCount();
   }
+  if (flushing) {
+    log("previous flush wedged, forcing reset");
+  }
+  // NOTE: do not bail on `navigator.onLine === false` — it's unreliable
+  // (false negatives after sleep / Wi-Fi handoff). Let the actual request
+  // try and fail; the connectivity provider does its own probing.
   flushing = true;
+  flushingSince = Date.now();
   try {
     // Auth must be present, otherwise RLS will reject everything.
     const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) return getQueuedCount();
+    if (!sessionData.session) {
+      log("no session, skipping flush");
+      return getQueuedCount();
+    }
+    const currentUserId = sessionData.session.user.id;
 
     const items = readQueue();
+    log("flush starting", { queued: items.length, user: currentUserId });
     for (const round of items) {
-      // Only flush rounds belonging to the currently signed-in user.
-      if (round.user_id !== sessionData.session.user.id) continue;
+      // Drop rounds that belong to a different signed-in user. They can
+      // never be flushed by this account, and counting them in the badge
+      // is misleading. (User explicitly approved auto-discard.)
+      if (round.user_id !== currentUserId) {
+        log("dropping cross-session round", {
+          submission_id: round.submission_id,
+          owner: round.user_id,
+        });
+        removeFromQueue(round.submission_id);
+        continue;
+      }
       // Drop poison items that have failed too many times — otherwise the
       // badge sticks forever and the user has no way to recover.
       if (round.attempts >= MAX_ATTEMPTS) {
+        log("dropping poison round", {
+          submission_id: round.submission_id,
+          attempts: round.attempts,
+          last_error: round.last_error,
+        });
         removeFromQueue(round.submission_id);
         continue;
       }
@@ -292,9 +377,15 @@ export async function flushRoundQueue(): Promise<number> {
       // dropped once they hit MAX_ATTEMPTS.
       if (!ok) continue;
     }
+    const remaining = getQueuedCount();
+    log("flush done", { remaining });
+    return getQueuedCount();
+  } catch (e) {
+    log("flush threw", e);
     return getQueuedCount();
   } finally {
     flushing = false;
+    flushingSince = 0;
   }
 }
 

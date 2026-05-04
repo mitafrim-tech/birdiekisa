@@ -8,8 +8,9 @@ import { useInstallPrompt } from "@/hooks/use-install-prompt";
 import { ConnectivityProvider } from "@/lib/connectivity";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { useEffect } from "react";
-import { startRoundQueueDrainer } from "@/lib/round-queue";
+import { startRoundQueueDrainer, flushRoundQueue } from "@/lib/round-queue";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { useConnectivity } from "@/lib/connectivity";
 
 function NotFoundComponent() {
   return (
@@ -134,5 +135,12 @@ function BackgroundServices() {
     startRoundQueueDrainer();
     registerServiceWorker();
   }, []);
+  // Re-flush the queue whenever the probe-based connectivity layer flips
+  // back to online — `navigator.onLine` events are unreliable, so this is
+  // the trigger that actually fires after a Wi-Fi handoff or wake-from-sleep.
+  const { online } = useConnectivity();
+  useEffect(() => {
+    if (online) void flushRoundQueue();
+  }, [online]);
   return null;
 }
