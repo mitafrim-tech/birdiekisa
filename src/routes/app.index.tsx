@@ -75,7 +75,12 @@ function Leaderboard() {
         ...t,
       };
     });
-    built.sort((a, b) => b.birdies - a.birdies);
+    built.sort((a, b) => {
+      if (b.birdies !== a.birdies) return b.birdies - a.birdies;
+      // Tiebreaker: alphabetical by nickname (ensures 0-birdie players
+      // sit at the bottom in a stable, alphabetical order).
+      return a.nickname.localeCompare(b.nickname);
+    });
     setRows(built);
     setLoading(false);
   }, [activeTeam]);
@@ -184,11 +189,14 @@ function Leaderboard() {
       ) : (
         <div className="space-y-3">
           {rows.map((row, idx) => {
-              // Standard competition ranking: tied players share the same rank.
-              // 10, 10, 8 -> 1, 1, 3
-              let rank = 1;
-              for (let i = 0; i < idx; i++) {
-                if (rows[i].birdies > row.birdies) rank = i + 2;
+              // Players with zero birdies are unranked.
+              // Standard competition ranking among ranked players: 10,10,8 -> 1,1,3.
+              let rank: number | null = null;
+              if (row.birdies > 0) {
+                rank = 1;
+                for (let i = 0; i < idx; i++) {
+                  if (rows[i].birdies > row.birdies) rank = i + 2;
+                }
               }
               return (
                 <div
@@ -207,7 +215,7 @@ function Leaderboard() {
   );
 }
 
-function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number; leaderBirdies: number }) {
+function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number | null; leaderBirdies: number }) {
   const isLeader = rank === 1;
   // Progress bar relative to the leader's birdie count.
   // If the leader has 0 birdies, show 0% for everyone (avoids div/0).
@@ -230,9 +238,9 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
               ? "text-foreground/70"
               : "text-muted-foreground/60"
           }`}
-          aria-label={`Sija ${rank}`}
+          aria-label={rank ? `Sija ${rank}` : "Ei sijoitusta"}
         >
-          {rank}
+          {rank ?? ""}
         </div>
 
         {row.avatar_url ? (
