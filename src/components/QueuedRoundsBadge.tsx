@@ -6,7 +6,6 @@ import {
   getQueuedCount,
   subscribeToRoundQueue,
 } from "@/lib/round-queue";
-import { useConnectivity } from "@/lib/connectivity";
 
 /**
  * Tiny chip surfaced in the app header whenever there are queued rounds
@@ -17,7 +16,6 @@ import { useConnectivity } from "@/lib/connectivity";
 export function QueuedRoundsBadge() {
   const [count, setCount] = useState<number>(() => getQueuedCount());
   const [retrying, setRetrying] = useState(false);
-  const { online } = useConnectivity();
 
   useEffect(() => {
     setCount(getQueuedCount());
@@ -33,7 +31,7 @@ export function QueuedRoundsBadge() {
     <div className="inline-flex items-center gap-0.5 h-8 rounded-full bg-accent/20 text-accent-foreground border border-accent/40 text-[11px] font-display uppercase tracking-wider overflow-hidden">
       <button
         type="button"
-        disabled={retrying || !online}
+        disabled={retrying}
         onClick={async () => {
           setRetrying(true);
           try {
