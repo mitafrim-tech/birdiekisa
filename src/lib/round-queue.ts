@@ -20,6 +20,13 @@ import { supabase } from "@/integrations/supabase/client";
 const STORAGE_KEY = "birdie:roundQueue:v1";
 const NOTIFY_EVENT = "birdie:round-queue:changed";
 
+/**
+ * Drop a queued round after this many failed flush attempts. Stops a
+ * permanently-poison item (e.g. user no longer in the team, schema mismatch
+ * from an old client) from sticking the badge on forever.
+ */
+const MAX_ATTEMPTS = 10;
+
 export type ShotPayload = {
   shot_type: "eagle" | "albatross" | "hole_in_one";
   course_name: string;
@@ -84,6 +91,14 @@ export function getQueuedRounds(): QueuedRound[] {
 
 export function getQueuedCount(): number {
   return readQueue().length;
+}
+
+/**
+ * Drop every queued round. Used by the badge's "clear" affordance when an
+ * item is poison and the user wants to dismiss it.
+ */
+export function clearRoundQueue() {
+  writeQueue([]);
 }
 
 export function subscribeToRoundQueue(listener: () => void): () => void {
@@ -264,8 +279,18 @@ export async function flushRoundQueue(): Promise<number> {
     for (const round of items) {
       // Only flush rounds belonging to the currently signed-in user.
       if (round.user_id !== sessionData.session.user.id) continue;
+      // Drop poison items that have failed too many times — otherwise the
+      // badge sticks forever and the user has no way to recover.
+      if (round.attempts >= MAX_ATTEMPTS) {
+        removeFromQueue(round.submission_id);
+        continue;
+      }
       const ok = await flushOne(round);
-      if (!ok) break; // backoff — try again on next trigger
+      // Don't abort the whole queue on one failure — a single poison item
+      // would block every other queued round behind it. Keep going; failed
+      // items stay queued (with their attempts counter bumped) and get
+      // dropped once they hit MAX_ATTEMPTS.
+      if (!ok) continue;
     }
     return getQueuedCount();
   } finally {
