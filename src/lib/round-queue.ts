@@ -225,16 +225,26 @@ export async function uploadQueuedRound(round: QueuedRound): Promise<boolean> {
     // Unique violation = the round was already inserted by an earlier
     // attempt that we never confirmed. Look it up and continue with shots.
     if (error.code === "23505") {
-      const { data: existing } = await withTimeout(
-        supabase
-          .from("rounds")
-          .select("id")
-          .eq("user_id", round.user_id)
-          .eq("submission_id", round.submission_id)
-          .maybeSingle(),
-        CALL_TIMEOUT_MS,
-        "rounds.lookup-existing",
-      );
+      let existing: { id: string } | null = null;
+      try {
+        const res = await withTimeout(
+          supabase
+            .from("rounds")
+            .select("id")
+            .eq("user_id", round.user_id)
+            .eq("submission_id", round.submission_id)
+            .maybeSingle(),
+          CALL_TIMEOUT_MS,
+          "rounds.lookup-existing",
+        );
+        existing = (res.data as { id: string } | null) ?? null;
+      } catch (e) {
+        updateInQueue(round.submission_id, {
+          attempts: round.attempts + 1,
+          last_error: e instanceof Error ? e.message : String(e),
+        });
+        return false;
+      }
       if (existing?.id) {
         roundId = existing.id;
       } else {
