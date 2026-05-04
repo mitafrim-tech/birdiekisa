@@ -20,7 +20,8 @@ const newSubmissionId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`.padEnd(32, "0").slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 };
 
 export const Route = createFileRoute("/app/log")({
