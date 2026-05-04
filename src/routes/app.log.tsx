@@ -157,6 +157,14 @@ function LogRound() {
       for (let i = 0; i < eagles; i++) celebrations.push("eagle");
 
       let offlineSave = false;
+      // Diagnostics: surface the exact decision inputs so we can tell whether
+      // a stale `online` flag is the reason rounds get queued on a healthy
+      // connection. Filter the console for "[round-submit]".
+      // eslint-disable-next-line no-console
+      console.info("[round-submit] decision", {
+        online,
+        navigatorOnLine: typeof navigator !== "undefined" ? navigator.onLine : "n/a",
+      });
       if (online) {
         // Prefer a direct upload while connected. Only fall back to the
         // persistent queue if the request fails or times out mid-flight.
@@ -167,6 +175,8 @@ function LogRound() {
           attempts: 0,
         };
         const uploaded = await uploadQueuedRound(queuedRound);
+        // eslint-disable-next-line no-console
+        console.info("[round-submit] upload result", { uploaded, submission_id: queuedRound.submission_id });
         if (!uploaded) {
           enqueueRound(queuedRound);
           offlineSave = true;
@@ -174,6 +184,8 @@ function LogRound() {
           void flushRoundQueue();
         }
       } else {
+        // eslint-disable-next-line no-console
+        console.warn("[round-submit] queued without trying upload because online=false");
         enqueueRound(pendingRound);
         offlineSave = true;
       }
