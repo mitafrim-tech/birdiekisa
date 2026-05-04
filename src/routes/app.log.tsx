@@ -13,7 +13,7 @@ import { CelebrationModal, type CelebrationKind } from "@/components/Celebration
 import { CoursePicker } from "@/components/CoursePicker";
 import { buildWhatsAppMessage, openWhatsAppShare } from "@/lib/share";
 import { toUserMessage } from "@/lib/errors";
-import { enqueueRound, flushRoundQueue, type ShotPayload } from "@/lib/round-queue";
+import { enqueueRound, flushRoundQueue, uploadQueuedRound, type QueuedRound, type ShotPayload } from "@/lib/round-queue";
 import { useConnectivity } from "@/lib/connectivity";
 
 export const Route = createFileRoute("/app/log")({
@@ -129,10 +129,7 @@ function LogRound() {
       pushShots(albatrossDetails, "albatross");
       pushShots(hioDetails, "hole_in_one");
 
-      // Always enqueue first — that way the round survives a sudden network
-      // drop, a tab close, or an app crash. The queue carries a stable
-      // submission_id so flushing it can never create a duplicate.
-      enqueueRound({
+      const pendingRound: Omit<QueuedRound, "submission_id" | "queued_at" | "attempts"> = {
         user_id: user.id,
         team_id: activeTeam.id,
         course_name: course.trim(),
@@ -143,7 +140,7 @@ function LogRound() {
         albatrosses,
         hole_in_ones: holeInOnes,
         shots,
-      });
+      };
 
       // Build celebration queue: rarest first
       const celebrations: CelebrationKind[] = [];
@@ -151,10 +148,27 @@ function LogRound() {
       for (let i = 0; i < albatrosses; i++) celebrations.push("albatross");
       for (let i = 0; i < eagles; i++) celebrations.push("eagle");
 
-      // Try to flush immediately. If the device is offline this is a no-op
-      // and the round stays queued; the drainer will retry on `online`.
-      const remaining = await flushRoundQueue();
-      const offlineSave = !online || remaining > 0;
+      let offlineSave = false;
+      if (online) {
+        // Prefer a direct upload while connected. Only fall back to the
+        // persistent queue if the request fails or times out mid-flight.
+        const queuedRound: QueuedRound = {
+          ...pendingRound,
+          submission_id: crypto.randomUUID(),
+          queued_at: Date.now(),
+          attempts: 0,
+        };
+        const uploaded = await uploadQueuedRound(queuedRound);
+        if (!uploaded) {
+          enqueueRound(queuedRound);
+          offlineSave = true;
+        } else {
+          void flushRoundQueue();
+        }
+      } else {
+        enqueueRound(pendingRound);
+        offlineSave = true;
+      }
       setSavedOffline(offlineSave);
 
       if (celebrations.length > 0) {
