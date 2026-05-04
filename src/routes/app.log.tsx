@@ -16,6 +16,13 @@ import { toUserMessage } from "@/lib/errors";
 import { enqueueRound, flushRoundQueue, uploadQueuedRound, type QueuedRound, type ShotPayload } from "@/lib/round-queue";
 import { useConnectivity } from "@/lib/connectivity";
 
+const newSubmissionId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+};
+
 export const Route = createFileRoute("/app/log")({
   component: LogRound,
 });
@@ -154,7 +161,7 @@ function LogRound() {
         // persistent queue if the request fails or times out mid-flight.
         const queuedRound: QueuedRound = {
           ...pendingRound,
-          submission_id: crypto.randomUUID(),
+          submission_id: newSubmissionId(),
           queued_at: Date.now(),
           attempts: 0,
         };
