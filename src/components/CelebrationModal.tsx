@@ -51,6 +51,17 @@ const CONFIG: Record<CelebrationKind, {
 };
 
 export function CelebrationModal({ kind, playerName, courseName, onClose }: CelebrationProps) {
+  // Failsafe auto-dismiss: on some mobile PWAs (notably iOS standalone) the
+  // backdrop-filter overlay or a confetti canvas can swallow taps, leaving the
+  // user stuck on the celebration screen. We keep the manual close button but
+  // also auto-advance after the celebration animation finishes.
+  useEffect(() => {
+    if (!kind) return;
+    const cfg = CONFIG[kind];
+    const timeout = window.setTimeout(onClose, cfg.duration + 2500);
+    return () => window.clearTimeout(timeout);
+  }, [kind, onClose]);
+
   useEffect(() => {
     if (!kind) return;
     const cfg = CONFIG[kind];
@@ -98,12 +109,14 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     <>
       {kind && (
         <div
-          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/85 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={onClose}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/90 animate-in fade-in duration-200"
+          onPointerDown={onClose}
+          role="button"
+          tabIndex={-1}
         >
           <div
             className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden animate-in zoom-in-50 fade-in duration-500 fill-mode-both`}
-            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             {/* Background trophy */}
             <Trophy className="absolute -right-12 -bottom-12 w-56 h-56 text-night/5 rotate-12" />
@@ -138,6 +151,7 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
             </div>
 
             <Button
+              type="button"
               onClick={onClose}
               className="w-full h-12 rounded-xl font-display bg-night text-primary-foreground hover:bg-night/90"
             >
