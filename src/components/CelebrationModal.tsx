@@ -1,4 +1,11 @@
-import { useEffect } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type KeyboardEvent,
+  type PointerEvent,
+  type MouseEvent,
+} from "react";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,15 +19,18 @@ interface CelebrationProps {
   onClose: () => void;
 }
 
-const CONFIG: Record<CelebrationKind, {
-  emoji: string;
-  title: string;
-  subtitle: string;
-  bg: string;
-  glow: string;
-  particles: number;
-  duration: number;
-}> = {
+const CONFIG: Record<
+  CelebrationKind,
+  {
+    emoji: string;
+    title: string;
+    subtitle: string;
+    bg: string;
+    glow: string;
+    particles: number;
+    duration: number;
+  }
+> = {
   eagle: {
     emoji: "🦅",
     title: "EAGLE!",
@@ -51,6 +61,20 @@ const CONFIG: Record<CelebrationKind, {
 };
 
 export function CelebrationModal({ kind, playerName, courseName, onClose }: CelebrationProps) {
+  const closeLockRef = useRef(false);
+  const unlockTimerRef = useRef<number | null>(null);
+
+  const requestClose = useCallback(() => {
+    if (closeLockRef.current) return;
+    closeLockRef.current = true;
+    onClose();
+    if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
+    unlockTimerRef.current = window.setTimeout(() => {
+      closeLockRef.current = false;
+      unlockTimerRef.current = null;
+    }, 450);
+  }, [onClose]);
+
   // Failsafe auto-dismiss: on some mobile PWAs (notably iOS standalone) the
   // backdrop-filter overlay or a confetti canvas can swallow taps, leaving the
   // user stuck on the celebration screen. We keep the manual close button but
@@ -58,9 +82,15 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
   useEffect(() => {
     if (!kind) return;
     const cfg = CONFIG[kind];
-    const timeout = window.setTimeout(onClose, cfg.duration + 2500);
+    const timeout = window.setTimeout(requestClose, cfg.duration + 2500);
     return () => window.clearTimeout(timeout);
-  }, [kind, onClose]);
+  }, [kind, requestClose]);
+
+  useEffect(() => {
+    return () => {
+      if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!kind) return;
@@ -105,18 +135,39 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     }
   }, [kind]);
 
+  const dismissFromPointer = (event: PointerEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    requestClose();
+  };
+
+  const dismissFromClick = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    requestClose();
+  };
+
+  const dismissFromKeyboard = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    event.stopPropagation();
+    requestClose();
+  };
+
   return (
     <>
       {kind && (
         <div
-          className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-night/90 animate-in fade-in duration-200"
-          onPointerDown={onClose}
-          role="button"
-          tabIndex={-1}
+          className="fixed inset-0 z-[110] flex touch-manipulation items-center justify-center p-6 bg-night/90 animate-in fade-in duration-200"
+          onPointerDown={dismissFromPointer}
+          onClick={dismissFromClick}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden animate-in zoom-in-50 fade-in duration-500 fill-mode-both`}
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Background trophy */}
             <Trophy className="absolute -right-12 -bottom-12 w-56 h-56 text-night/5 rotate-12" />
@@ -152,8 +203,10 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
 
             <Button
               type="button"
-              onClick={onClose}
-              className="w-full h-12 rounded-xl font-display bg-night text-primary-foreground hover:bg-night/90"
+              onPointerDown={dismissFromPointer}
+              onClick={dismissFromClick}
+              onKeyDown={dismissFromKeyboard}
+              className="w-full h-12 touch-manipulation rounded-xl font-display bg-night text-primary-foreground hover:bg-night/90"
             >
               Legendaa! →
             </Button>
