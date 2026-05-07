@@ -13,14 +13,22 @@ import { CelebrationModal, type CelebrationKind } from "@/components/Celebration
 import { CoursePicker } from "@/components/CoursePicker";
 import { buildWhatsAppMessage, openWhatsAppShare } from "@/lib/share";
 import { toUserMessage } from "@/lib/errors";
-import { enqueueRound, flushRoundQueue, uploadQueuedRound, type QueuedRound, type ShotPayload } from "@/lib/round-queue";
+import {
+  enqueueRound,
+  flushRoundQueue,
+  uploadQueuedRound,
+  type QueuedRound,
+  type ShotPayload,
+} from "@/lib/round-queue";
 import { useConnectivity } from "@/lib/connectivity";
 
 const newSubmissionId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`.padEnd(32, "0").slice(0, 32);
+  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`
+    .padEnd(32, "0")
+    .slice(0, 32);
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 };
 
@@ -159,7 +167,7 @@ function LogRound() {
       // Diagnostics: surface the exact decision inputs so we can tell whether
       // a stale `online` flag is the reason rounds get queued on a healthy
       // connection. Filter the console for "[round-submit]".
-      // eslint-disable-next-line no-console
+
       console.info("[round-submit] decision", {
         online,
         navigatorOnLine: typeof navigator !== "undefined" ? navigator.onLine : "n/a",
@@ -174,8 +182,11 @@ function LogRound() {
           attempts: 0,
         };
         const uploaded = await uploadQueuedRound(queuedRound);
-        // eslint-disable-next-line no-console
-        console.info("[round-submit] upload result", { uploaded, submission_id: queuedRound.submission_id });
+
+        console.info("[round-submit] upload result", {
+          uploaded,
+          submission_id: queuedRound.submission_id,
+        });
         if (!uploaded) {
           enqueueRound(queuedRound);
           offlineSave = true;
@@ -183,7 +194,6 @@ function LogRound() {
           void flushRoundQueue();
         }
       } else {
-        // eslint-disable-next-line no-console
         console.warn("[round-submit] queued without trying upload because online=false");
         enqueueRound(pendingRound);
         offlineSave = true;

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, type KeyboardEvent, type PointerEvent, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type KeyboardEvent,
+  type PointerEvent,
+  type MouseEvent,
+} from "react";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,15 +19,18 @@ interface CelebrationProps {
   onClose: () => void;
 }
 
-const CONFIG: Record<CelebrationKind, {
-  emoji: string;
-  title: string;
-  subtitle: string;
-  bg: string;
-  glow: string;
-  particles: number;
-  duration: number;
-}> = {
+const CONFIG: Record<
+  CelebrationKind,
+  {
+    emoji: string;
+    title: string;
+    subtitle: string;
+    bg: string;
+    glow: string;
+    particles: number;
+    duration: number;
+  }
+> = {
   eagle: {
     emoji: "🦅",
     title: "EAGLE!",
