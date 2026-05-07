@@ -47,9 +47,26 @@ export function registerServiceWorker() {
 
   // Defer to keep startup snappy.
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
-      // Silent failure — the app still works without a SW.
-      console.warn("[birdie] service worker registration failed", err);
-    });
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        registration.update().catch(() => undefined);
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+        registration.addEventListener("updatefound", () => {
+          const worker = registration.installing;
+          if (!worker) return;
+          worker.addEventListener("statechange", () => {
+            if (worker.state === "installed" && navigator.serviceWorker.controller) {
+              worker.postMessage({ type: "SKIP_WAITING" });
+            }
+          });
+        });
+      })
+      .catch((err) => {
+        // Silent failure — the app still works without a SW.
+        console.warn("[birdie] service worker registration failed", err);
+      });
   });
 }
