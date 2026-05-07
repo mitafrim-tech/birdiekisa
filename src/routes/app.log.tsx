@@ -57,7 +57,6 @@ function LogRound() {
   const [savedOffline, setSavedOffline] = useState(false);
 
   // Post-save state
-  const [celebration, setCelebration] = useState<CelebrationKind | null>(null);
   const [celebrationQueue, setCelebrationQueue] = useState<CelebrationKind[]>([]);
   const [playerName, setPlayerName] = useState("Pelaaja");
 
@@ -192,8 +191,7 @@ function LogRound() {
       setSavedOffline(offlineSave);
 
       if (celebrations.length > 0) {
-        setCelebration(celebrations[0]);
-        setCelebrationQueue(celebrations.slice(1));
+        setCelebrationQueue(celebrations);
       } else if (offlineSave) {
         toast.success("Tallennettu offline-tilassa", {
           description: "Lähetetään automaattisesti kun yhteys palaa.",
@@ -210,12 +208,7 @@ function LogRound() {
   };
 
   const closeCelebration = () => {
-    if (celebrationQueue.length > 0) {
-      setCelebration(celebrationQueue[0]);
-      setCelebrationQueue(celebrationQueue.slice(1));
-    } else {
-      setCelebration(null);
-    }
+    setCelebrationQueue((queue) => queue.slice(1));
   };
 
   const handleShare = () => {
@@ -239,7 +232,7 @@ function LogRound() {
     return (
       <>
         <CelebrationModal
-          kind={celebration}
+          kind={celebrationQueue[0] ?? null}
           playerName={playerName}
           courseName={course}
           onClose={closeCelebration}
@@ -313,6 +306,7 @@ function LogRound() {
                 setEagleDetails([]);
                 setAlbatrossDetails([]);
                 setHioDetails([]);
+                setCelebrationQueue([]);
               }}
               className="flex-1 h-12 rounded-xl font-display"
             >
