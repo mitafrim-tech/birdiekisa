@@ -11,7 +11,7 @@
  *     network so we never serve stale data accidentally.
  */
 
-const VERSION = "birdie-sw-v1";
+const VERSION = "birdie-sw-v2";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const NAV_FALLBACK = "/";
@@ -36,6 +36,10 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim()),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 function isApiRequest(url) {
@@ -96,8 +100,27 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Build assets: stale-while-revalidate.
+  // Build assets: app code must be network-first so installed PWAs do not keep
+  // running a stale JS bundle after a fix has shipped. Images/fonts can still
+  // use stale-while-revalidate for fast offline-friendly reloads.
   if (isAssetRequest(request) && url.origin === self.location.origin) {
+    if (request.destination === "script" || request.destination === "style") {
+      event.respondWith(
+        caches.open(ASSET_CACHE).then(async (cache) => {
+          const cached = await cache.match(request);
+          return fetch(request, { cache: "no-store" })
+            .then((response) => {
+              if (response && response.status === 200) {
+                cache.put(request, response.clone()).catch(() => undefined);
+              }
+              return response;
+            })
+            .catch(() => cached ?? Response.error());
+        }),
+      );
+      return;
+    }
+
     event.respondWith(
       caches.open(ASSET_CACHE).then(async (cache) => {
         const cached = await cache.match(request);
