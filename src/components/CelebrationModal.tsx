@@ -3,8 +3,8 @@ import {
   useEffect,
   useRef,
   type KeyboardEvent,
-  type PointerEvent,
   type MouseEvent,
+  type TouchEvent,
 } from "react";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
@@ -61,19 +61,19 @@ const CONFIG: Record<
 };
 
 export function CelebrationModal({ kind, playerName, courseName, onClose }: CelebrationProps) {
-  const closeLockRef = useRef(false);
-  const unlockTimerRef = useRef<number | null>(null);
+  const closeRef = useRef(onClose);
+  const lastCloseAtRef = useRef(0);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
 
   const requestClose = useCallback(() => {
-    if (closeLockRef.current) return;
-    closeLockRef.current = true;
-    onClose();
-    if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
-    unlockTimerRef.current = window.setTimeout(() => {
-      closeLockRef.current = false;
-      unlockTimerRef.current = null;
-    }, 450);
-  }, [onClose]);
+    const now = Date.now();
+    if (now - lastCloseAtRef.current < 300) return;
+    lastCloseAtRef.current = now;
+    closeRef.current();
+  }, []);
 
   // Failsafe auto-dismiss: on some mobile PWAs (notably iOS standalone) the
   // backdrop-filter overlay or a confetti canvas can swallow taps, leaving the
@@ -85,12 +85,6 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     const timeout = window.setTimeout(requestClose, cfg.duration + 2500);
     return () => window.clearTimeout(timeout);
   }, [kind, requestClose]);
-
-  useEffect(() => {
-    return () => {
-      if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (!kind) return;
@@ -135,13 +129,19 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     }
   }, [kind]);
 
-  const dismissFromPointer = (event: PointerEvent<HTMLElement>) => {
+  const dismissBackdrop = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    event.stopPropagation();
+    requestClose();
+  };
+
+  const dismissFromTouch = (event: TouchEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
     requestClose();
   };
 
-  const dismissFromClick = (event: MouseEvent<HTMLElement>) => {
+  const dismissFromClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
     requestClose();
@@ -158,15 +158,13 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
     <>
       {kind && (
         <div
-          className="fixed inset-0 z-[110] flex touch-manipulation items-center justify-center p-6 bg-night/90 animate-in fade-in duration-200"
-          onPointerDown={dismissFromPointer}
-          onClick={dismissFromClick}
+          className="fixed inset-0 z-[9999] flex touch-manipulation items-center justify-center p-6 bg-night/90 animate-in fade-in duration-200"
+          onClick={dismissBackdrop}
           role="dialog"
           aria-modal="true"
         >
           <div
-            className={`relative z-[111] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden animate-in zoom-in-50 fade-in duration-500 fill-mode-both`}
-            onPointerDown={(e) => e.stopPropagation()}
+            className={`relative z-[10000] max-w-sm w-full rounded-[2.5rem] bg-gradient-to-br ${CONFIG[kind].bg} ${CONFIG[kind].glow} p-8 text-center text-night overflow-hidden animate-in zoom-in-50 fade-in duration-500 fill-mode-both`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Background trophy */}
@@ -203,10 +201,10 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
 
             <Button
               type="button"
-              onPointerDown={dismissFromPointer}
-              onClick={dismissFromClick}
+              onTouchEndCapture={dismissFromTouch}
+              onClickCapture={dismissFromClick}
               onKeyDown={dismissFromKeyboard}
-              className="w-full h-12 touch-manipulation rounded-xl font-display bg-night text-primary-foreground hover:bg-night/90"
+              className="relative z-[10001] w-full h-12 touch-manipulation rounded-xl font-display bg-night text-primary-foreground hover:bg-night/90"
             >
               Legendaa! →
             </Button>
