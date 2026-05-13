@@ -11,7 +11,7 @@
  *     network so we never serve stale data accidentally.
  */
 
-const VERSION = "birdie-sw-v2";
+const VERSION = "birdie-sw-v3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const NAV_FALLBACK = "/";
