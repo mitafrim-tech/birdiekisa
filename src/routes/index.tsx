@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trophy, Flag, Sparkles } from "lucide-react";
 import { toUserMessage } from "@/lib/errors";
-import logoBirdie from "@/assets/logo-birdie.jpg";
+import logoBirdie from "@/assets/logo-birdie.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
