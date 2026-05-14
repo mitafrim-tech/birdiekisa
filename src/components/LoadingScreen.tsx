@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import logoBirdie from "@/assets/logo-birdie.webp";
 
 interface LoadingScreenProps {
   /** Optional label shown below the spinner. Defaults to "Ladataan...". */
@@ -9,18 +9,16 @@ interface LoadingScreenProps {
  * Full-page branded loading screen.
  *
  * Used while the app is figuring out auth state, fetching the current
- * profile, consuming a pending join code, etc. The earlier bare Flag
- * icon on a flat background felt orphaned on the screen; this version
- * keeps the hero gradient + accent-yellow card pattern that's already
- * used on the auth callback page, so loading always feels like it's
- * part of the brand instead of an empty state.
+ * profile, consuming a pending join code, etc. Shows the Birdie trophy
+ * mark inside a white card on the hero gradient so the loading state
+ * looks like part of the brand, not a generic spinner.
  */
 export function LoadingScreen({ label = "Ladataan..." }: LoadingScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero text-primary-foreground">
       <div className="text-center">
-        <div className="w-14 h-14 rounded-2xl bg-accent inline-flex items-center justify-center mb-4 shadow-bold animate-pulse">
-          <Flag className="w-8 h-8 text-night" strokeWidth={3} />
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-primary-foreground inline-flex items-center justify-center mb-4 shadow-bold animate-pulse overflow-hidden">
+          <img src={logoBirdie} alt="" className="w-12 h-12 object-contain" />
         </div>
         <p className="font-display text-2xl">{label}</p>
       </div>
