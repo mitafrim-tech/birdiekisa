@@ -233,7 +233,15 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
         </div>
 
         {row.avatar_url ? (
-          <img src={row.avatar_url} alt={row.nickname} className="w-12 h-12 rounded-2xl object-cover shrink-0" />
+          <img
+            src={row.avatar_url}
+            alt={row.nickname}
+            width={48}
+            height={48}
+            loading="lazy"
+            decoding="async"
+            className="w-12 h-12 rounded-2xl object-cover shrink-0"
+          />
         ) : (
           <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
             <Flag className="w-6 h-6 text-primary" strokeWidth={2.5} />

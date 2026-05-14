@@ -75,7 +75,14 @@ function PlayerProfile() {
 
       <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-6 shadow-card flex items-center gap-4">
         {player?.avatar_url ? (
-          <img src={player.avatar_url} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-bold" />
+          <img
+            src={player.avatar_url}
+            alt=""
+            width={80}
+            height={80}
+            decoding="async"
+            className="w-20 h-20 rounded-2xl object-cover shadow-bold"
+          />
         ) : (
           <div className="w-20 h-20 rounded-2xl bg-primary-foreground/20 flex items-center justify-center">
             <Flag className="w-10 h-10" strokeWidth={2.5} />

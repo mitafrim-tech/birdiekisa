@@ -152,7 +152,15 @@ function HallOfFame() {
               .map((c) => (
               <div key={c.id} className="bg-card rounded-2xl p-4 shadow-card flex items-center gap-3">
                 {c.profiles?.avatar_url ? (
-                  <img src={c.profiles.avatar_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                  <img
+                    src={c.profiles.avatar_url}
+                    alt=""
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-12 h-12 rounded-xl object-cover"
+                  />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-primary/20" />
                 )}
