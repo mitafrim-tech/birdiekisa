@@ -26,11 +26,29 @@ const newSubmissionId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`
-    .padEnd(32, "0")
-    .slice(0, 32);
+  const hex = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`.padEnd(32, "0").slice(0, 32);
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 };
+
+/**
+ * Wrap a promise so a "yhteys hidas" sonner toast appears if it takes longer
+ * than `delayMs`. The toast is automatically dismissed when the promise
+ * settles (success or failure). Used around the synchronous round submit so
+ * the user gets feedback on flaky connections instead of staring at a
+ * spinner for 10 seconds.
+ */
+async function withSlowToast<T>(task: Promise<T>, message: string, delayMs = 4000): Promise<T> {
+  let slowToastId: string | number | undefined;
+  const timer = window.setTimeout(() => {
+    slowToastId = toast.loading(message);
+  }, delayMs);
+  try {
+    return await task;
+  } finally {
+    window.clearTimeout(timer);
+    if (slowToastId !== undefined) toast.dismiss(slowToastId);
+  }
+}
 
 export const Route = createFileRoute("/app/log")({
   component: LogRound,
@@ -74,11 +92,7 @@ function LogRound() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("nickname")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data } = await supabase.from("profiles").select("nickname").eq("id", user.id).maybeSingle();
       if (data?.nickname) setPlayerName(data.nickname);
     })();
   }, [user]);
@@ -118,9 +132,7 @@ function LogRound() {
       return;
     }
     setEagleDetails(Array.from({ length: eagles }, () => ({ ...blank, course_name: course })));
-    setAlbatrossDetails(
-      Array.from({ length: albatrosses }, () => ({ ...blank, course_name: course })),
-    );
+    setAlbatrossDetails(Array.from({ length: albatrosses }, () => ({ ...blank, course_name: course })));
     setHioDetails(Array.from({ length: holeInOnes }, () => ({ ...blank, course_name: course })));
     setStep("details");
   };
@@ -181,7 +193,7 @@ function LogRound() {
           queued_at: Date.now(),
           attempts: 0,
         };
-        const uploaded = await uploadQueuedRound(queuedRound);
+        const uploaded = await withSlowToast(uploadQueuedRound(queuedRound), "Yhteys hidas, odotetaan...");
 
         console.info("[round-submit] upload result", {
           uploaded,
@@ -252,16 +264,13 @@ function LogRound() {
             <div className="w-14 h-14 mx-auto rounded-full bg-primary-foreground/20 flex items-center justify-center mb-3">
               <Check className="w-7 h-7" strokeWidth={3} />
             </div>
-            <h1 className="font-display text-3xl">
-              {savedOffline ? "Tallennettu offline" : "Kierros kirjattu!"}
-            </h1>
+            <h1 className="font-display text-3xl">{savedOffline ? "Tallennettu offline" : "Kierros kirjattu!"}</h1>
             <p className="text-sm opacity-90 mt-1">
               {course} · {format(new Date(date), "d.M.yyyy")}
             </p>
             {savedOffline && (
               <p className="text-xs opacity-90 mt-2">
-                Lähetetään automaattisesti kun yhteys palaa. Älä lähetä uudelleen — duplikaatteja ei
-                synny.
+                Lähetetään automaattisesti kun yhteys palaa. Älä lähetä uudelleen — duplikaatteja ei synny.
               </p>
             )}
           </div>
@@ -273,17 +282,11 @@ function LogRound() {
             <SavedStat label="Holarit" value={holeInOnes} />
           </div>
 
-          <div
-            className={`rounded-3xl p-5 shadow-card ${hasNotable ? "bg-gradient-sunset text-night" : "bg-card"}`}
-          >
-            <div className="font-display text-lg mb-1">
-              {hasNotable ? "Kerro kavereille! 🎉" : "Jaa kavereille"}
-            </div>
+          <div className={`rounded-3xl p-5 shadow-card ${hasNotable ? "bg-gradient-sunset text-night" : "bg-card"}`}>
+            <div className="font-display text-lg mb-1">{hasNotable ? "Kerro kavereille! 🎉" : "Jaa kavereille"}</div>
             <p className={`text-sm mb-4 ${hasNotable ? "text-night/80" : "text-muted-foreground"}`}>
               Lähetä WhatsApp-viesti tiimille{" "}
-              {hasNotable
-                ? "ja anna heidän juhlia kanssasi."
-                : "ja muistuta siitä, että johdat tulostaulua."}
+              {hasNotable ? "ja anna heidän juhlia kanssasi." : "ja muistuta siitä, että johdat tulostaulua."}
             </p>
             <Button
               onClick={handleShare}
@@ -298,11 +301,7 @@ function LogRound() {
           </div>
 
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate({ to: "/app" })}
-              className="flex-1 h-12 rounded-xl"
-            >
+            <Button variant="outline" onClick={() => navigate({ to: "/app" })} className="flex-1 h-12 rounded-xl">
               Tulostauluun
             </Button>
             <Button
@@ -335,31 +334,13 @@ function LogRound() {
         <h1 className="font-display text-3xl mb-2">Kerro lisää</h1>
         <p className="text-muted-foreground mb-6">Legendoille.</p>
         <ShotDetailsList title="Holarit" emoji="⛳" details={hioDetails} onChange={setHioDetails} />
-        <ShotDetailsList
-          title="Albatrossit"
-          emoji="🪶"
-          details={albatrossDetails}
-          onChange={setAlbatrossDetails}
-        />
-        <ShotDetailsList
-          title="Eaglet"
-          emoji="🦅"
-          details={eagleDetails}
-          onChange={setEagleDetails}
-        />
+        <ShotDetailsList title="Albatrossit" emoji="🪶" details={albatrossDetails} onChange={setAlbatrossDetails} />
+        <ShotDetailsList title="Eaglet" emoji="🦅" details={eagleDetails} onChange={setEagleDetails} />
         <div className="flex gap-3 mt-6">
-          <Button
-            variant="outline"
-            className="flex-1 h-12 rounded-xl"
-            onClick={() => setStep("round")}
-          >
+          <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setStep("round")}>
             Takaisin
           </Button>
-          <Button
-            onClick={submit}
-            disabled={submitting}
-            className="flex-1 h-12 rounded-xl font-display"
-          >
+          <Button onClick={submit} disabled={submitting} className="flex-1 h-12 rounded-xl font-display">
             {submitting ? "Tallennetaan..." : "Tallenna kierros"}
           </Button>
         </div>
@@ -373,17 +354,10 @@ function LogRound() {
       <h1 className="font-display text-3xl mb-2">Kirjaa kierros</h1>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-          Kenttä
-        </Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kenttä</Label>
         <div className="mt-1">
           {activeTeam && user ? (
-            <CoursePicker
-              teamId={activeTeam.id}
-              userId={user.id}
-              value={course}
-              onChange={setCourse}
-            />
+            <CoursePicker teamId={activeTeam.id} userId={user.id} value={course} onChange={setCourse} />
           ) : (
             <Input
               placeholder="Esim. Helsingin Golfklubi"
@@ -396,9 +370,7 @@ function LogRound() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-          Päivämäärä
-        </Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Päivämäärä</Label>
         <Input
           required
           type="date"
@@ -409,9 +381,7 @@ function LogRound() {
       </div>
 
       <div>
-        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-          Pelatut reiät
-        </Label>
+        <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Pelatut reiät</Label>
         <div className="flex gap-2 mt-1">
           {HOLE_OPTIONS.map((h) => (
             <button
@@ -431,9 +401,7 @@ function LogRound() {
             type="button"
             onClick={() => setHoles(-1)}
             className={`flex-1 h-12 rounded-xl font-display transition-all ${
-              holes === -1
-                ? "bg-primary text-primary-foreground shadow-bold"
-                : "bg-secondary text-secondary-foreground"
+              holes === -1 ? "bg-primary text-primary-foreground shadow-bold" : "bg-secondary text-secondary-foreground"
             }`}
           >
             Muu
@@ -460,12 +428,7 @@ function LogRound() {
 
       <div className="grid grid-cols-3 gap-3">
         <SmallCounter label="Eaglet" emoji="🦅" value={eagles} onChange={setEagles} />
-        <SmallCounter
-          label="Albatrossit"
-          emoji="🪶"
-          value={albatrosses}
-          onChange={setAlbatrosses}
-        />
+        <SmallCounter label="Albatrossit" emoji="🪶" value={albatrosses} onChange={setAlbatrosses} />
         <SmallCounter label="Holarit" emoji="⛳" value={holeInOnes} onChange={setHoleInOnes} />
       </div>
 
@@ -476,15 +439,7 @@ function LogRound() {
   );
 }
 
-function Counter({
-  value,
-  onChange,
-  big,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  big?: boolean;
-}) {
+function Counter({ value, onChange, big }: { value: number; onChange: (v: number) => void; big?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <button
@@ -520,9 +475,7 @@ function SmallCounter({
   return (
     <div className="bg-card rounded-2xl p-3 shadow-card text-center">
       <div className="text-2xl mb-1">{emoji}</div>
-      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-        {label}
-      </div>
+      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{label}</div>
       <div className="font-display text-2xl mt-1 tabular-nums">{value}</div>
       <div className="flex gap-1 mt-2">
         <button
@@ -544,19 +497,9 @@ function SmallCounter({
   );
 }
 
-function SavedStat({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: number;
-  highlight?: boolean;
-}) {
+function SavedStat({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <div
-      className={`rounded-2xl p-3 text-center shadow-card ${highlight ? "bg-accent text-night" : "bg-card"}`}
-    >
+    <div className={`rounded-2xl p-3 text-center shadow-card ${highlight ? "bg-accent text-night" : "bg-card"}`}>
       <div className="font-display text-2xl tabular-nums">{value}</div>
       <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80">{label}</div>
     </div>
@@ -575,10 +518,7 @@ function ShotDetailsList({
   onChange: (d: { course_name: string; hole_number: string; event_name: string }[]) => void;
 }) {
   if (details.length === 0) return null;
-  const update = (
-    i: number,
-    patch: Partial<{ course_name: string; hole_number: string; event_name: string }>,
-  ) => {
+  const update = (i: number, patch: Partial<{ course_name: string; hole_number: string; event_name: string }>) => {
     onChange(details.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
   };
   return (
