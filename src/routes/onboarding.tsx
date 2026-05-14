@@ -64,14 +64,9 @@ function Onboarding() {
       // before sending them into the app so they never see the
       // "create your own team" screen.
       if (typeof window !== "undefined") {
-        const pendingJoin =
-          localStorage.getItem("birdie:pendingJoin") ??
-          sessionStorage.getItem("birdie:pendingJoin");
+        const pendingJoin = localStorage.getItem("birdie:pendingJoin") ?? sessionStorage.getItem("birdie:pendingJoin");
         if (pendingJoin) {
-          const { data: joinedId, error: joinErr } = await supabase.rpc(
-            "join_team_by_code",
-            { _code: pendingJoin },
-          );
+          const { data: joinedId, error: joinErr } = await supabase.rpc("join_team_by_code", { _code: pendingJoin });
           localStorage.removeItem("birdie:pendingJoin");
           sessionStorage.removeItem("birdie:pendingJoin");
           if (!joinErr) {
@@ -92,7 +87,7 @@ function Onboarding() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto px-6 pt-12 pb-20">
-        <h1 className="font-display text-4xl mb-2">Tervetuloa mukaan!</h1>
+        <h1 className="font-display text-3xl mb-2">Tervetuloa mukaan!</h1>
         <p className="text-muted-foreground mb-8">Valitse pelaajanimi ja kuva, jotta tiimisi tunnistaa sinut.</p>
 
         <form onSubmit={handleSave} className="space-y-6">
