@@ -18,9 +18,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Sivua ei löytynyt</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Etsimääsi sivua ei ole olemassa tai se on siirretty.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Etsimääsi sivua ei ole olemassa tai se on siirretty.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -56,7 +54,7 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Birdie" },
-      { name: "theme-color", content: "#0b0f0a" },
+      { name: "theme-color", content: "#1a9a52" },
       { name: "twitter:title", content: "Birdie — Pidä kirjaa golfkaudestasi" },
       {
         name: "twitter:description",
