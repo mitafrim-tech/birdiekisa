@@ -35,19 +35,19 @@ function TeamsPage() {
     try {
       let logo_url: string | null = null;
       if (logoFile) logo_url = await uploadUserFile("team-logos", user.id, logoFile);
-      const { error } = await supabase
-        .from("teams")
-        .insert({
-          name: name.trim(),
-          admin_id: user.id,
-          logo_url,
-          season_start: seasonStart || null,
-          season_end: seasonEnd || null,
-        });
+      const { error } = await supabase.from("teams").insert({
+        name: name.trim(),
+        admin_id: user.id,
+        logo_url,
+        season_start: seasonStart || null,
+        season_end: seasonEnd || null,
+      });
       if (error) throw error;
 
       const nextTeams = await refresh();
-      const createdTeam = [...nextTeams].reverse().find((team) => team.admin_id === user.id && team.name === name.trim());
+      const createdTeam = [...nextTeams]
+        .reverse()
+        .find((team) => team.admin_id === user.id && team.name === name.trim());
       if (createdTeam) {
         setActiveTeamId(createdTeam.id);
       }
@@ -75,7 +75,7 @@ function TeamsPage() {
           {teams.map((t) => (
             <div
               key={t.id}
-              className="w-full bg-card rounded-2xl p-4 shadow-card flex items-center gap-3"
+              className="w-full bg-card rounded-2xl p-4 shadow-card flex items-center gap-3 transition-transform active:scale-[0.98]"
             >
               <button
                 type="button"
@@ -157,23 +157,46 @@ function TeamsPage() {
 
           <div>
             <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Tiimin nimi</Label>
-            <Input required value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className="h-12 mt-1" />
+            <Input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={50}
+              className="h-12 mt-1"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi alkaa</Label>
-              <Input type="date" value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)} className="h-12 mt-1" />
+              <Input
+                type="date"
+                value={seasonStart}
+                onChange={(e) => setSeasonStart(e.target.value)}
+                className="h-12 mt-1"
+              />
             </div>
             <div>
-              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kausi päättyy</Label>
-              <Input type="date" value={seasonEnd} onChange={(e) => setSeasonEnd(e.target.value)} className="h-12 mt-1" />
+              <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
+                Kausi päättyy
+              </Label>
+              <Input
+                type="date"
+                value={seasonEnd}
+                onChange={(e) => setSeasonEnd(e.target.value)}
+                className="h-12 mt-1"
+              />
             </div>
           </div>
 
           <div className="flex gap-2">
             {teams.length > 0 && (
-              <Button type="button" variant="outline" onClick={() => setShowCreate(false)} className="flex-1 h-12 rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCreate(false)}
+                className="flex-1 h-12 rounded-xl"
+              >
                 Peruuta
               </Button>
             )}
