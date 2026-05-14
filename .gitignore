@@ -30,3 +30,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local env (real secrets must never be committed; .env in this repo is a
+# Lovable build artifact that only contains the public Supabase URL +
+# publishable key, but we still keep them out of git on principle)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
