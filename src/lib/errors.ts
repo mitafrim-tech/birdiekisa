@@ -31,6 +31,14 @@ export function toUserMessage(err: unknown, fallback = "Toiminto epäonnistui"):
   // Log full details for developers; never to UI.
   if (typeof console !== "undefined") console.error(err);
 
+  // Pass through errors that explicitly mark themselves as user-facing
+  // via a `userMessage` property. This lets utilities like upload.ts throw
+  // pre-translated, Finnish messages without going through code mapping.
+  if (err && typeof err === "object" && "userMessage" in err) {
+    const um = (err as { userMessage?: unknown }).userMessage;
+    if (typeof um === "string" && um.length > 0) return um;
+  }
+
   const known = knownMessage(err);
   if (known) return known;
 
