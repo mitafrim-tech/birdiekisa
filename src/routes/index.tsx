@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ function LandingPage() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && user && typeof window !== "undefined") {
@@ -53,6 +55,20 @@ function LandingPage() {
       setSent(true);
       toast.success("Tarkista sähköpostisi — taikalinkki on lähetetty");
     }
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/auth/callback`,
+    });
+    if (result.redirected) return;
+    if (result.error) {
+      setGoogleLoading(false);
+      toast.error(toUserMessage(result.error, "Google-kirjautuminen epäonnistui"));
+      return;
+    }
+    window.location.replace("/app");
   };
 
   return (
