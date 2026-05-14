@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ function LandingPage() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && user && typeof window !== "undefined") {
@@ -53,6 +55,20 @@ function LandingPage() {
       setSent(true);
       toast.success("Tarkista sähköpostisi — taikalinkki on lähetetty");
     }
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/auth/callback`,
+    });
+    if (result.redirected) return;
+    if (result.error) {
+      setGoogleLoading(false);
+      toast.error(toUserMessage(result.error, "Google-kirjautuminen epäonnistui"));
+      return;
+    }
+    window.location.replace("/app");
   };
 
   return (
@@ -139,6 +155,26 @@ function LandingPage() {
                 className="w-full h-12 text-base font-display tracking-wide bg-night hover:bg-night/90 text-primary-foreground rounded-xl"
               >
                 {sending ? "Lähetetään taikalinkkiä..." : "Lähetä taikalinkki →"}
+              </Button>
+              <div className="flex items-center gap-3 py-1">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">tai</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={googleLoading}
+                onClick={handleGoogle}
+                className="w-full h-12 text-base rounded-xl gap-2"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+                  <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961l3.007 2.332C4.672 5.166 6.656 3.58 9 3.58z"/>
+                </svg>
+                {googleLoading ? "Avataan Googlea..." : "Jatka Googlella"}
               </Button>
               <p className="text-sm text-foreground font-semibold text-center">
                 Uusi käyttäjä? Luot oman tiimisi sisäänkirjautumisen jälkeen.
