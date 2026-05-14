@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  type KeyboardEvent,
-  type MouseEvent,
-  type TouchEvent,
-} from "react";
+import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -79,6 +72,10 @@ export function CelebrationModal({ kind, playerName, courseName, onClose }: Cele
   // backdrop-filter overlay or a confetti canvas can swallow taps, leaving the
   // user stuck on the celebration screen. We keep the manual close button but
   // also auto-advance after the celebration animation finishes.
+  useEffect(() => {
+    lastCloseAtRef.current = 0;
+  }, [kind]);
+
   useEffect(() => {
     if (!kind) return;
     const cfg = CONFIG[kind];
