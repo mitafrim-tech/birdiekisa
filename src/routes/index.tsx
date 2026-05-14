@@ -30,6 +30,8 @@ function LandingPage() {
   const [sent, setSent] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -71,6 +73,28 @@ function LandingPage() {
       setSent(true);
       toast.success("Tarkista sähköpostisi — taikalinkki on lähetetty");
     }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = code.replace(/\D/g, "");
+    if (token.length !== 6) {
+      toast.error("Anna 6-numeroinen koodi");
+      return;
+    }
+    setVerifying(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token,
+      type: "email",
+    });
+    setVerifying(false);
+    if (error) {
+      toast.error(toUserMessage(error, "Koodi on virheellinen tai vanhentunut"));
+      return;
+    }
+    toast.success("Kirjauduttu sisään");
+    if (typeof window !== "undefined") window.location.replace("/app");
   };
 
   const handleGoogle = async () => {
@@ -136,26 +160,52 @@ function LandingPage() {
               </div>
               <h2 className="font-display text-2xl mb-2">Tarkista sähköpostisi</h2>
               <p className="text-muted-foreground text-sm">
-                Lähetimme taikalinkin osoitteeseen <span className="font-semibold text-foreground">{email}</span>.
-                Klikkaa sitä kirjautuaksesi sisään.
+                Lähetimme sähköpostin osoitteeseen <span className="font-semibold text-foreground">{email}</span>.
+                Voit klikata linkkiä <span className="font-semibold">tai</span> syöttää sähköpostissa olevan
+                6-numeroisen koodin alle.
               </p>
+
+              <form onSubmit={handleVerifyCode} className="mt-5 space-y-3 text-left">
+                <label className="font-display text-xs uppercase tracking-wider text-muted-foreground block">
+                  6-numeroinen koodi
+                </label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="123456"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="h-14 text-center text-2xl font-display tracking-[0.5em]"
+                />
+                <Button
+                  type="submit"
+                  disabled={verifying || code.length !== 6}
+                  className="w-full h-12 rounded-xl font-display"
+                >
+                  {verifying ? "Kirjaudutaan..." : "Kirjaudu koodilla"}
+                </Button>
+              </form>
+
               {isStandalone && (
                 <div className="mt-4 rounded-xl bg-muted/60 p-3 text-left text-xs text-muted-foreground">
-                  <p className="font-semibold text-foreground mb-1">Vinkki Android-käyttäjille</p>
+                  <p className="font-semibold text-foreground mb-1">Vinkki asennetun sovelluksen käyttäjille</p>
                   <p>
-                    Jos taikalinkki avautuu selaimessa eikä asennetussa Birdie-sovelluksessa, sovellus voi pyytää
-                    kirjautumista uudelleen jokaisella avauksella. Pidä sovellus auki ja avaa sähköpostilinkki
-                    samalla laitteella — jos kirjautuminen ei pysy, kirjaudu sisään selaimessa
-                    osoitteessa <span className="font-semibold">birdiekisa.lovable.app</span> ja lisää sovellus
-                    aloitusnäytölle uudelleen.
+                    Suosittelemme syöttämään 6-numeroisen koodin yllä olevaan kenttään — näin pysyt kirjautuneena
+                    sovellukseen. Sähköpostin linkin avaaminen voi avata selaimen ja sovellus pyytää kirjautumaan
+                    uudelleen jokaisella avauksella.
                   </p>
                 </div>
               )}
+
               <Button
                 variant="ghost"
                 onClick={() => {
                   setSent(false);
                   setEmail("");
+                  setCode("");
                 }}
                 className="mt-4"
               >
