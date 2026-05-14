@@ -7,6 +7,32 @@ type BIPEvent = Event & {
 
 const INSTALLED_KEY = "birdie:installedAt";
 const LAST_BIP_KEY = "birdie:lastBeforeInstallPromptAt";
+// Set when the user (on iOS, where we can't auto-detect) tells us the app is
+// already installed. Treated as terminal: hides install affordances forever
+// on this device/browser.
+const MANUAL_INSTALLED_KEY = "birdie:manuallyMarkedInstalled";
+
+function readInstalledFlag() {
+  if (typeof window === "undefined") return false;
+  try {
+    return Boolean(
+      window.localStorage.getItem(INSTALLED_KEY) ||
+        window.localStorage.getItem(MANUAL_INSTALLED_KEY),
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function markInstalledManually() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MANUAL_INSTALLED_KEY, String(Date.now()));
+  } catch {
+    // ignore
+  }
+  notifyListeners();
+}
 
 let sharedDeferred: BIPEvent | null = null;
 let sharedFreshPromptTick = 0;
@@ -64,6 +90,7 @@ function isAndroid() {
 export function useInstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(() => sharedDeferred);
   const [standalone, setStandalone] = useState<boolean>(() => isStandalone());
+  const [installed, setInstalled] = useState<boolean>(() => readInstalledFlag());
   const [ios, setIos] = useState(false);
   const [android, setAndroid] = useState(false);
   // Increments whenever the browser fires a fresh `beforeinstallprompt`,
@@ -77,10 +104,25 @@ export function useInstallPrompt() {
     setAndroid(isAndroid());
     setDeferred(sharedDeferred);
     setFreshPromptTick(sharedFreshPromptTick);
+    // If we ever observe standalone mode, persist the installed flag so that
+    // future browser-tab visits also hide the install affordances.
+    if (isStandalone()) {
+      try {
+        if (!window.localStorage.getItem(INSTALLED_KEY)) {
+          window.localStorage.setItem(INSTALLED_KEY, String(Date.now()));
+        }
+      } catch {
+        // ignore
+      }
+      setInstalled(true);
+    } else {
+      setInstalled(readInstalledFlag());
+    }
 
     const syncFromSharedState = () => {
       setDeferred(sharedDeferred);
       setFreshPromptTick(sharedFreshPromptTick);
+      setInstalled(readInstalledFlag());
     };
     listeners.add(syncFromSharedState);
 
@@ -105,6 +147,7 @@ export function useInstallPrompt() {
     const onInstalled = () => {
       sharedDeferred = null;
       setStandalone(true);
+      setInstalled(true);
       try {
         window.localStorage.setItem(INSTALLED_KEY, String(Date.now()));
       } catch {
@@ -136,11 +179,19 @@ export function useInstallPrompt() {
     return outcome;
   }, [deferred]);
 
-  const canInstall = !standalone && !isPreviewContext() && (Boolean(deferred) || ios || android);
+  // Android without a native prompt almost always means "already installed"
+  // (or not installable). Either way, showing a CTA leads to a dead-end
+  // dialog, so we suppress it.
+  const canInstall =
+    !standalone &&
+    !installed &&
+    !isPreviewContext() &&
+    (Boolean(deferred) || ios);
 
   return {
     canInstall,
     standalone,
+    installed,
     ios,
     android,
     hasNativePrompt: Boolean(deferred),
