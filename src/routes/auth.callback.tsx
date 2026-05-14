@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/lib/team-context";
 import { toast } from "sonner";
 import { toUserMessage } from "@/lib/errors";
-import { Flag } from "lucide-react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/auth/callback")({
   component: AuthCallback,
@@ -27,8 +27,7 @@ function AuthCallback() {
     (async () => {
       const pendingJoin =
         typeof window !== "undefined"
-          ? localStorage.getItem("birdie:pendingJoin") ??
-            sessionStorage.getItem("birdie:pendingJoin")
+          ? (localStorage.getItem("birdie:pendingJoin") ?? sessionStorage.getItem("birdie:pendingJoin"))
           : null;
       if (pendingJoin) {
         // Auto-join immediately so the user lands inside the team
@@ -56,14 +55,5 @@ function AuthCallback() {
     };
   }, [user, loading, navigate, refresh, setActiveTeamId]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-hero text-primary-foreground">
-      <div className="text-center">
-        <div className="w-14 h-14 rounded-2xl bg-accent inline-flex items-center justify-center mb-4 shadow-bold animate-pulse">
-          <Flag className="w-8 h-8 text-night" strokeWidth={3} />
-        </div>
-        <p className="font-display text-2xl">Kirjataan sisään...</p>
-      </div>
-    </div>
-  );
+  return <LoadingScreen label="Kirjataan sisään..." />;
 }
