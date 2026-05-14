@@ -82,9 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               )}
               <div className="text-left">
-                <div className="font-display text-base leading-tight">
-                  {activeTeam?.name ?? "Ei tiimiä"}
-                </div>
+                <div className="font-display text-base leading-tight">{activeTeam?.name ?? "Ei tiimiä"}</div>
                 {hasMultipleTeams && (
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                     Vaihda <ChevronDown className="w-3 h-3" />
@@ -165,16 +163,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div
                 className={cn(
                   "w-12 h-12 rounded-full flex items-center justify-center shadow-glow transition-transform group-active:scale-95",
-                  isOnLogRoute
-                    ? "bg-accent text-night ring-4 ring-accent/30"
-                    : "bg-primary text-primary-foreground",
+                  isOnLogRoute ? "bg-accent text-night ring-4 ring-accent/30" : "bg-primary text-primary-foreground",
                 )}
               >
                 <Plus className="w-6 h-6" strokeWidth={3} />
               </div>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-                Lisää
-              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">Lisää</span>
             </Link>
             {TABS.slice(2).map((tab) => (
               <NavTab
@@ -211,18 +205,20 @@ function NavTab({
   alsoActiveFor?: string[];
 }) {
   const matchesSelf = exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
-  const matchesAlias = (alsoActiveFor ?? []).some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
+  const matchesAlias = (alsoActiveFor ?? []).some((p) => pathname === p || pathname.startsWith(p + "/"));
   const active = matchesSelf || matchesAlias;
   return (
     <Link
       to={to}
       className={cn(
-        "flex flex-col items-center justify-center gap-1 py-2.5 transition-colors",
+        "relative flex flex-col items-center justify-center gap-1 py-2.5 transition-all active:scale-95",
         active ? "text-primary" : "text-muted-foreground hover:text-foreground",
       )}
     >
+      {/* Slim primary-colored bar above the active tab. Cheap visual that
+          makes the bottom nav feel much more deliberate than a color shift
+          on the icon alone. */}
+      {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />}
       <Icon className="w-5 h-5" strokeWidth={2.5} />
       <span className="text-[10px] font-semibold uppercase tracking-wider">{label}</span>
     </Link>
