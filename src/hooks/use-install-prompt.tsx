@@ -104,20 +104,7 @@ export function useInstallPrompt() {
     setAndroid(isAndroid());
     setDeferred(sharedDeferred);
     setFreshPromptTick(sharedFreshPromptTick);
-    // If we ever observe standalone mode, persist the installed flag so that
-    // future browser-tab visits also hide the install affordances.
-    if (isStandalone()) {
-      try {
-        if (!window.localStorage.getItem(INSTALLED_KEY)) {
-          window.localStorage.setItem(INSTALLED_KEY, String(Date.now()));
-        }
-      } catch {
-        // ignore
-      }
-      setInstalled(true);
-    } else {
-      setInstalled(readInstalledFlag());
-    }
+    setInstalled(readInstalledFlag());
 
     const syncFromSharedState = () => {
       setDeferred(sharedDeferred);
@@ -129,6 +116,16 @@ export function useInstallPrompt() {
     const onBIP = (e: Event) => {
       e.preventDefault();
       sharedDeferred = e as BIPEvent;
+      // A fresh beforeinstallprompt is proof the app is NOT currently
+      // installed on this browser. Clear any stale installed flags so the
+      // CTA reappears (e.g. after the user uninstalled, or after we wrongly
+      // persisted the flag during prior testing).
+      try {
+        window.localStorage.removeItem(INSTALLED_KEY);
+        window.localStorage.removeItem(MANUAL_INSTALLED_KEY);
+      } catch {
+        // ignore
+      }
       // Detect "fresh" signals: if more than 1 minute has passed since the
       // last BIP we treat it as a new installability window (covers reload
       // after uninstall). Always tick on first event in a session.
