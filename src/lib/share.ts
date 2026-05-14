@@ -27,19 +27,15 @@ export function buildWhatsAppMessage(s: RoundSummary): string {
   } else if (s.eagles > 0) {
     parts.push(`🦅 EAGLE! ${s.player_nickname} pamautti eaglen @ ${s.course_name}!`);
   } else if (s.birdies > 0) {
-    parts.push(
-      `🐦 ${s.player_nickname} kirjasi ${s.birdies} ${pluralBirdie(s.birdies)} @ ${s.course_name}.`,
-    );
+    parts.push(`🐦 ${s.player_nickname} kirjasi ${s.birdies} ${pluralBirdie(s.birdies)} @ ${s.course_name}.`);
   } else {
     parts.push(`⛳ ${s.player_nickname} pelasi kierroksen @ ${s.course_name}.`);
   }
 
   // Extra stats line — show everything that happened, in rarity order
   const stats: string[] = [];
-  if (s.hole_in_ones > 0)
-    stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
-  if (s.albatrosses > 0)
-    stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
+  if (s.hole_in_ones > 0) stats.push(`${s.hole_in_ones} holari${s.hole_in_ones === 1 ? "" : "a"} ⛳`);
+  if (s.albatrosses > 0) stats.push(`${s.albatrosses} albatross${s.albatrosses === 1 ? "" : "ia"} 🪶`);
   if (s.eagles > 0) stats.push(`${s.eagles} eagle${s.eagles === 1 ? "" : "a"} 🦅`);
   if (s.birdies > 0) stats.push(`${s.birdies} ${pluralBirdie(s.birdies)} 🐦`);
 
@@ -106,5 +102,46 @@ export async function nativeShareInvite(teamName: string, inviteUrl: string): Pr
     // AbortError = user cancelled the sheet, treat as success/no-op.
     if (err instanceof DOMException && err.name === "AbortError") return true;
     return false;
+  }
+}
+
+/* ============================================================
+ * App share helpers (generic, no team attached)
+ *
+ * Used by the "Jaa Birdie kavereille" menu item. Sharing the bare app
+ * URL takes the recipient to the landing page, where they'll sign in
+ * and create THEIR OWN team — not join any team belonging to the
+ * sharer. To invite someone into a specific team, use the team
+ * invite share helpers above.
+ * ============================================================ */
+
+function buildAppShareText(): string {
+  return "Pidetään kirjaa kaveriporukan birdieistä Birdiellä — luo oma tiimi ja kerää porukkasi mukaan.";
+}
+
+/**
+ * Share the bare app URL. Tries the native share sheet first (mobile),
+ * falls back to opening WhatsApp web with the message pre-filled
+ * (desktop / browsers without Web Share). Quietly returns on cancel.
+ */
+export async function shareBirdieApp(): Promise<void> {
+  const url = typeof window !== "undefined" ? window.location.origin : "https://birdiekisa.lovable.app";
+  const text = buildAppShareText();
+
+  if (typeof navigator !== "undefined" && "share" in navigator) {
+    try {
+      await navigator.share({ title: "Birdie", text, url });
+      return;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      // Fall through to the WhatsApp fallback if the share sheet failed
+      // for some other reason (e.g. permission, in-app browser quirks).
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    const message = `${text} ${url}`;
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
   }
 }
