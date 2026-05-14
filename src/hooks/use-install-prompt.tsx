@@ -104,20 +104,7 @@ export function useInstallPrompt() {
     setAndroid(isAndroid());
     setDeferred(sharedDeferred);
     setFreshPromptTick(sharedFreshPromptTick);
-    // If we ever observe standalone mode, persist the installed flag so that
-    // future browser-tab visits also hide the install affordances.
-    if (isStandalone()) {
-      try {
-        if (!window.localStorage.getItem(INSTALLED_KEY)) {
-          window.localStorage.setItem(INSTALLED_KEY, String(Date.now()));
-        }
-      } catch {
-        // ignore
-      }
-      setInstalled(true);
-    } else {
-      setInstalled(readInstalledFlag());
-    }
+    setInstalled(readInstalledFlag());
 
     const syncFromSharedState = () => {
       setDeferred(sharedDeferred);
