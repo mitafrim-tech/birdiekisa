@@ -13,7 +13,10 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Birdie — Pidä kirjaa golfkaudestasi kaverien kanssa" },
-      { name: "description", content: "Kirjaa birdiet, eaglet ja holarit. Kuka johtaa tulostaulua? Tehty golfporukoille." },
+      {
+        name: "description",
+        content: "Kirjaa birdiet, eaglet ja holarit. Kuka johtaa tulostaulua? Tehty golfporukoille.",
+      },
     ],
   }),
   component: LandingPage,
@@ -76,8 +79,10 @@ function LandingPage() {
         </div>
 
         <h1 className="font-display text-5xl sm:text-6xl leading-[0.95] mb-6 text-balance">
-          Kuka on kauden<br />
-          <span className="text-accent">pirkkokisan</span><br />
+          Kuka on kauden
+          <br />
+          <span className="text-accent">pirkkokisan</span>
+          <br />
           kingi?
         </h1>
 
@@ -99,11 +104,15 @@ function LandingPage() {
               </div>
               <h2 className="font-display text-2xl mb-2">Tarkista sähköpostisi</h2>
               <p className="text-muted-foreground text-sm">
-                Lähetimme taikalinkin osoitteeseen <span className="font-semibold text-foreground">{email}</span>. Klikkaa sitä kirjautuaksesi sisään.
+                Lähetimme taikalinkin osoitteeseen <span className="font-semibold text-foreground">{email}</span>.
+                Klikkaa sitä kirjautuaksesi sisään.
               </p>
               <Button
                 variant="ghost"
-                onClick={() => { setSent(false); setEmail(""); }}
+                onClick={() => {
+                  setSent(false);
+                  setEmail("");
+                }}
                 className="mt-4"
               >
                 Käytä eri sähköpostia
@@ -131,8 +140,11 @@ function LandingPage() {
               >
                 {sending ? "Lähetetään taikalinkkiä..." : "Lähetä taikalinkki →"}
               </Button>
+              <p className="text-sm text-foreground font-semibold text-center">
+                Uusi käyttäjä? Luot oman tiimisi sisäänkirjautumisen jälkeen.
+              </p>
               <p className="text-xs text-muted-foreground text-center">
-                Salasanaa ei tarvita. Lähetämme sähköpostiisi kirjautumislinkin.
+                Salasanaa ei tarvita — lähetämme sähköpostiisi kirjautumislinkin.
               </p>
             </form>
           )}
