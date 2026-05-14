@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -108,8 +109,8 @@ function RulesPage() {
       ) : (
         <div className="bg-card rounded-3xl p-6 shadow-card">
           {content.trim() ? (
-            <article className="prose prose-sm max-w-none prose-headings:font-display prose-headings:tracking-tight prose-h1:text-2xl prose-h2:text-xl prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-ul:my-2">
-              <ReactMarkdown>{content}</ReactMarkdown>
+            <article className="prose prose-sm max-w-none break-words prose-headings:font-display prose-headings:tracking-tight prose-h1:text-2xl prose-h2:text-xl prose-p:text-foreground prose-p:leading-relaxed prose-p:my-3 prose-li:text-foreground prose-li:my-1 prose-strong:text-foreground prose-ul:my-3 prose-ol:my-3 prose-headings:mt-5 prose-headings:mb-2">
+              <ReactMarkdown remarkPlugins={[remarkBreaks]}>{content}</ReactMarkdown>
             </article>
           ) : (
             <div className="text-center py-8">
