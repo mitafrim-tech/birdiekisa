@@ -52,19 +52,11 @@ function LegendsAdmin() {
   useEffect(() => {
     if (!activeTeam) return;
     (async () => {
-      const { data: tm } = await supabase
-        .from("team_members")
-        .select("user_id")
-        .eq("team_id", activeTeam.id);
+      const { data: tm } = await supabase.from("team_members").select("user_id").eq("team_id", activeTeam.id);
       const ids = (tm ?? []).map((r) => r.user_id);
       if (ids.length === 0) return;
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, nickname")
-        .in("id", ids);
-      setMembers(
-        (profs ?? []).map((p) => ({ user_id: p.id, nickname: p.nickname })),
-      );
+      const { data: profs } = await supabase.from("profiles").select("id, nickname").in("id", ids);
+      setMembers((profs ?? []).map((p) => ({ user_id: p.id, nickname: p.nickname })));
     })();
   }, [activeTeam]);
 
@@ -98,7 +90,7 @@ function LegendsAdmin() {
         season_label: category === "birdie_winner" ? `Kausi ${yr}` : null,
         birdie_count: category === "birdie_winner" ? Number(birdieCount) || 0 : 0,
         course_name: category === "birdie_winner" ? null : course.trim() || null,
-        hole_number: category === "birdie_winner" ? null : (hole ? Number(hole) : null),
+        hole_number: category === "birdie_winner" ? null : hole ? Number(hole) : null,
         event_date: evDate,
         competition: competition.trim() || null,
         is_manual: true,
@@ -128,16 +120,14 @@ function LegendsAdmin() {
         </div>
         <div>
           <div className="text-xs uppercase tracking-widest font-semibold opacity-80">Ylläpitäjä</div>
-          <h1 className="font-display text-2xl leading-tight">Lisää legenda</h1>
+          <h1 className="font-display text-3xl leading-tight">Lisää legenda</h1>
         </div>
       </div>
 
       <form onSubmit={submit} className="bg-card rounded-3xl p-5 shadow-card space-y-4">
         {/* Category */}
         <div>
-          <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-            Kategoria
-          </Label>
+          <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Kategoria</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {(Object.keys(CATEGORY_LABEL) as Category[]).map((c) => (
               <button
@@ -189,9 +179,7 @@ function LegendsAdmin() {
 
         {category === "birdie_winner" ? (
           <div>
-            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-              Birdie-määrä
-            </Label>
+            <Label className="font-display text-xs uppercase tracking-wider text-muted-foreground">Birdie-määrä</Label>
             <Input
               type="number"
               min={0}
@@ -250,11 +238,7 @@ function LegendsAdmin() {
           </>
         )}
 
-        <Button
-          type="submit"
-          disabled={submitting}
-          className="w-full h-12 rounded-xl font-display"
-        >
+        <Button type="submit" disabled={submitting} className="w-full h-12 rounded-xl font-display">
           <Plus className="w-4 h-4 mr-2" />
           {submitting ? "Tallennetaan..." : "Lisää Legendoihin"}
         </Button>
