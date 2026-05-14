@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { Flag } from "lucide-react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -22,11 +22,7 @@ function AppLayout() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("nickname")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data } = await supabase.from("profiles").select("nickname").eq("id", user.id).maybeSingle();
       if (cancelled) return;
       setNeedsOnboarding(!data?.nickname);
       setProfileChecked(true);
@@ -45,9 +41,7 @@ function AppLayout() {
       setJoinChecked(true);
       return;
     }
-    const pendingJoin =
-      localStorage.getItem("birdie:pendingJoin") ??
-      sessionStorage.getItem("birdie:pendingJoin");
+    const pendingJoin = localStorage.getItem("birdie:pendingJoin") ?? sessionStorage.getItem("birdie:pendingJoin");
     if (!pendingJoin) {
       setJoinChecked(true);
       return;
@@ -72,21 +66,13 @@ function AppLayout() {
   }, [user, teamsLoading, refresh, setActiveTeamId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Flag className="w-8 h-8 text-primary animate-pulse" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) return <Navigate to="/" />;
 
   if (!profileChecked || !joinChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Flag className="w-8 h-8 text-primary animate-pulse" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (needsOnboarding) {
