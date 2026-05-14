@@ -1,13 +1,13 @@
 {
   "name": "Birdie",
   "short_name": "Birdie",
-  "description": "Pidä kirjaa golfkaudestasi kaverien kanssa.",
+  "description": "Pid\u00e4 kirjaa golfkaudestasi kaverien kanssa.",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#0b0f0a",
+  "theme_color": "#0b0f0a",
   "icons": [
     {
       "src": "/icon-192.png",
