@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
+import { markInstalledManually } from "@/hooks/use-install-prompt";
 
 /**
  * Header install affordance.
@@ -60,6 +61,18 @@ export function InstallButton() {
             </DialogDescription>
           </DialogHeader>
           {android && !hasNativePrompt ? <AndroidInstructions /> : <IosInstructions />}
+          {ios && (
+            <button
+              type="button"
+              onClick={() => {
+                markInstalledManually();
+                setIosOpen(false);
+              }}
+              className="mt-4 w-full text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+            >
+              Olen jo asentanut sovelluksen
+            </button>
+          )}
         </DialogContent>
       </Dialog>
     </>
