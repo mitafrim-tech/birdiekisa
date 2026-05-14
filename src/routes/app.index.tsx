@@ -32,17 +32,11 @@ function Leaderboard() {
   const loadLeaderboard = useCallback(async () => {
     if (!activeTeam) return;
     // Fetch members
-    const { data: members } = await supabase
-      .from("team_members")
-      .select("user_id")
-      .eq("team_id", activeTeam.id);
+    const { data: members } = await supabase.from("team_members").select("user_id").eq("team_id", activeTeam.id);
 
     const memberIds = (members ?? []).map((m) => m.user_id);
     const { data: profiles } = memberIds.length
-      ? await supabase
-          .from("profiles")
-          .select("id, nickname, avatar_url")
-          .in("id", memberIds)
+      ? await supabase.from("profiles").select("id, nickname, avatar_url").in("id", memberIds)
       : { data: [] as { id: string; nickname: string | null; avatar_url: string | null }[] };
     const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
@@ -114,11 +108,7 @@ function Leaderboard() {
       )
       // Profiles aren't team-scoped, so no filter — RLS still limits the
       // payloads we receive to teammates we're allowed to see.
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "profiles" },
-        () => loadLeaderboard(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadLeaderboard())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -139,7 +129,7 @@ function Leaderboard() {
   const showInviteNudge = isAdmin && !loading && rows.length <= 1;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-8">
       {/* Hero */}
       <div className="rounded-3xl bg-gradient-hero p-6 text-primary-foreground shadow-card relative overflow-hidden">
         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-accent/40 blur-2xl" />
@@ -189,28 +179,27 @@ function Leaderboard() {
       ) : (
         <div className="space-y-3">
           {rows.map((row, idx) => {
-              // Players with zero birdies are unranked.
-              // Standard competition ranking among ranked players: 10,10,8 -> 1,1,3.
-              let rank: number | null = null;
-              if (row.birdies > 0) {
-                rank = 1;
-                for (let i = 0; i < idx; i++) {
-                  if (rows[i].birdies > row.birdies) rank = i + 2;
-                }
+            // Players with zero birdies are unranked.
+            // Standard competition ranking among ranked players: 10,10,8 -> 1,1,3.
+            let rank: number | null = null;
+            if (row.birdies > 0) {
+              rank = 1;
+              for (let i = 0; i < idx; i++) {
+                if (rows[i].birdies > row.birdies) rank = i + 2;
               }
-              return (
-                <div
-                  key={row.user_id}
-                  className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
-                  style={{ animationDelay: `${idx * 40}ms` }}
-                >
-                  <LeaderCard row={row} rank={rank} leaderBirdies={rows[0]?.birdies ?? 0} />
-                </div>
-              );
-            })}
+            }
+            return (
+              <div
+                key={row.user_id}
+                className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+                style={{ animationDelay: `${idx * 40}ms` }}
+              >
+                <LeaderCard row={row} rank={rank} leaderBirdies={rows[0]?.birdies ?? 0} />
+              </div>
+            );
+          })}
         </div>
       )}
-
     </div>
   );
 }
@@ -233,10 +222,10 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
             isLeader
               ? "text-night"
               : rank === 2
-              ? "text-foreground/80"
-              : rank === 3
-              ? "text-foreground/70"
-              : "text-muted-foreground/60"
+                ? "text-foreground/80"
+                : rank === 3
+                  ? "text-foreground/70"
+                  : "text-muted-foreground/60"
           }`}
           aria-label={rank ? `Sija ${rank}` : "Ei sijoitusta"}
         >
@@ -244,11 +233,7 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
         </div>
 
         {row.avatar_url ? (
-          <img
-            src={row.avatar_url}
-            alt={row.nickname}
-            className="w-12 h-12 rounded-2xl object-cover shrink-0"
-          />
+          <img src={row.avatar_url} alt={row.nickname} className="w-12 h-12 rounded-2xl object-cover shrink-0" />
         ) : (
           <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
             <Flag className="w-6 h-6 text-primary" strokeWidth={2.5} />
@@ -261,26 +246,14 @@ function LeaderCard({ row, rank, leaderBirdies }: { row: LeaderRow; rank: number
             {/* Birdie counter — fixed-width container fits 3-digit numbers */}
             <div className="flex items-baseline gap-1 shrink-0 min-w-[68px] justify-end">
               <span className="font-display text-2xl leading-none tabular-nums">{row.birdies}</span>
-              <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">
-                birdiet
-              </span>
+              <span className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">birdiet</span>
             </div>
           </div>
           {/* Progress bar */}
-          <div
-            className={`mt-2 h-1.5 rounded-full overflow-hidden ${
-              isLeader ? "bg-night/20" : "bg-muted"
-            }`}
-          >
+          <div className={`mt-2 h-1.5 rounded-full overflow-hidden ${isLeader ? "bg-night/20" : "bg-muted"}`}>
             <div
               className={`h-full rounded-full transition-[width] duration-500 ${
-                isLeader
-                  ? "bg-night"
-                  : rank === 2
-                  ? "bg-sky"
-                  : rank === 3
-                  ? "bg-flag"
-                  : "bg-primary/70"
+                isLeader ? "bg-night" : rank === 2 ? "bg-sky" : rank === 3 ? "bg-flag" : "bg-primary/70"
               }`}
               style={{ width: `${pct}%` }}
             />
