@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useInstallPrompt } from "@/hooks/use-install-prompt";
-import { markInstalledManually } from "@/hooks/use-install-prompt";
+import { useInstallPrompt, markInstalledManually } from "@/hooks/use-install-prompt";
 
 /**
  * Header install affordance.
