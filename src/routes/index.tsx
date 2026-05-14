@@ -29,6 +29,22 @@ function LandingPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(display-mode: standalone)");
+    const update = () =>
+      setIsStandalone(
+        mq.matches ||
+          // iOS Safari
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window.navigator as any).standalone === true,
+      );
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
 
   useEffect(() => {
     if (!loading && user && typeof window !== "undefined") {
@@ -123,6 +139,18 @@ function LandingPage() {
                 Lähetimme taikalinkin osoitteeseen <span className="font-semibold text-foreground">{email}</span>.
                 Klikkaa sitä kirjautuaksesi sisään.
               </p>
+              {isStandalone && (
+                <div className="mt-4 rounded-xl bg-muted/60 p-3 text-left text-xs text-muted-foreground">
+                  <p className="font-semibold text-foreground mb-1">Vinkki Android-käyttäjille</p>
+                  <p>
+                    Jos taikalinkki avautuu selaimessa eikä asennetussa Birdie-sovelluksessa, sovellus voi pyytää
+                    kirjautumista uudelleen jokaisella avauksella. Pidä sovellus auki ja avaa sähköpostilinkki
+                    samalla laitteella — jos kirjautuminen ei pysy, kirjaudu sisään selaimessa
+                    osoitteessa <span className="font-semibold">birdiekisa.lovable.app</span> ja lisää sovellus
+                    aloitusnäytölle uudelleen.
+                  </p>
+                </div>
+              )}
               <Button
                 variant="ghost"
                 onClick={() => {
