@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useTeams } from "@/lib/team-context";
@@ -27,6 +27,18 @@ function TeamsPage() {
   const [seasonEnd, setSeasonEnd] = useState("");
   const [creating, setCreating] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Honor a #new hash so the team-switcher dropdown can deep-link
+  // straight into the create form (one tap from anywhere in the app,
+  // instead of two: open dropdown, then click Luo tiimi button).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash === "#new") {
+      setShowCreate(true);
+      // Clear the hash so a later refresh doesn't keep re-opening the form.
+      history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +81,14 @@ function TeamsPage() {
   return (
     <div className="space-y-6 pb-8">
       <h1 className="font-display text-3xl">Tiimisi</h1>
+
+      {teams.length === 0 && (
+        <div className="rounded-3xl bg-gradient-hero p-6 text-primary-foreground shadow-card">
+          <div className="text-xs uppercase tracking-widest opacity-80 font-semibold">Aloitetaan</div>
+          <h2 className="font-display text-2xl mt-1 mb-1">Tervetuloa Birdieen!</h2>
+          <p className="text-sm opacity-90">Luo oma tiimi ja kutsu kaverit pelaamaan kanssasi.</p>
+        </div>
+      )}
 
       {teams.length > 0 && (
         <div className="space-y-2">
