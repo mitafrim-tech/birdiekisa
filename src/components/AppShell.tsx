@@ -10,8 +10,10 @@ import {
   LogOut,
   Settings,
   ScrollText,
+  Share2,
 } from "lucide-react";
 import { useTeams } from "@/lib/team-context";
+import { shareBirdieApp } from "@/lib/share";
 import { useAuth } from "@/lib/auth";
 import {
   DropdownMenu,
@@ -113,6 +115,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate({ to: "/app/teams" })}>
                 <Users className="w-4 h-4 mr-2" /> Hallinnoi tiimejä
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/app/teams", hash: "new" })}>
+                <Plus className="w-4 h-4 mr-2" /> Luo uusi tiimi
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => void shareBirdieApp()}>
+                <Share2 className="w-4 h-4 mr-2" /> Jaa Birdie kavereille
               </DropdownMenuItem>
               {activeTeam && user?.id === activeTeam.admin_id && (
                 <DropdownMenuItem onClick={() => navigate({ to: "/app/team-settings" })}>
